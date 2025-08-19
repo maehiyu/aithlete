@@ -1,0 +1,103 @@
+version: '3.9'
+services:
+
+  frontend:
+    build: ./frontend
+    ports:
+      - "3000:3000"
+    depends_on:
+      - api
+      - ws
+      - broker
+  broker:
+    image: redis:7
+    restart: always
+    ports:
+      - "6379:6379"
+    volumes:
+      - broker_data:/data
+  api:
+    build: ./api
+    environment:
+      - DB_HOST=db
+      - NOSQL_HOST=nosql
+      - BROKER_HOST=broker
+    ports:
+      - "8000:8000"
+    depends_on:
+      - db
+      - nosql
+      - broker
+
+  ws:
+    build: ./ws
+    environment:
+      - DB_HOST=db
+      - NOSQL_HOST=nosql
+      - BROKER_HOST=broker
+    ports:
+      - "9000:9000"
+    depends_on:
+      - db
+      - nosql
+      - broker
+  ai:
+    build: ./ai
+    environment:
+      - DB_HOST=db
+      - NOSQL_HOST=nosql
+      - BROKER_HOST=broker
+    ports:
+      - "9100:9100"
+    depends_on:
+      - db
+      - nosql
+      - broker
+
+  pose_estimator:
+    build: ./pose-estimator
+    ports:
+      - "8500:8500"
+    depends_on:
+      - broker
+
+  db:
+    image: postgres:15
+    restart: always
+    environment:
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: appdb
+    ports:
+      - "5432:5432"
+    volumes:
+      - db_data:/var/lib/postgresql/data
+
+  nosql:
+    image: mongo:6
+    restart: always
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: user
+      MONGO_INITDB_ROOT_PASSWORD: password
+      MONGO_INITDB_DATABASE: ragdb
+    ports:
+      - "27017:27017"
+    volumes:
+      - nosql_data:/data/db
+
+  storage:
+    image: minio/minio:latest
+    command: server /data
+    environment:
+      MINIO_ROOT_USER: minio
+      MINIO_ROOT_PASSWORD: minio123
+    ports:
+      - "9001:9000"
+    volumes:
+      - minio_data:/data
+
+volumes:
+  db_data:
+  nosql_data:
+  minio_data:
+  broker_data:
