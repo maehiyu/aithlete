@@ -1,46 +1,48 @@
 package entity
 
-import "time"
+import (
+	"time"
+)
 
 type Chat struct {
-	ID            string `gorm:"primaryKey"`
-	StartedAt     time.Time
-	LastActiveAt  time.Time
-	Title         *string
-	Questions     []Question `gorm:"foreignKey:ChatID"`
-	Answers       []Answer   `gorm:"foreignKey:ChatID"`
-	ParticipantIDs []string   `gorm:"type:text[]"`
+	ID             string
+	StartedAt      time.Time
+	LastActiveAt   time.Time
+	Title          *string
+	Questions      []Question
+	Answers        []Answer
+	ParticipantIDs []string
 }
 
 type Question struct {
-	ID            string `gorm:"primaryKey"`
-	ChatID        string // 外部キー
+	ID            string
+	ChatID        string
 	ParticipantID string
 	Content       string
-	Attachments   []Attachment `gorm:"foreignKey:QuestionID"`
+	Attachments   []Attachment
 	CreatedAt     time.Time
 }
 
 type Answer struct {
-	ID            string `gorm:"primaryKey"`
-	ChatID        string // 外部キー
+	ID            string
+	ChatID        string
 	QuestionID    string
 	ParticipantID string
 	Content       string
-	Attachments   []Attachment `gorm:"foreignKey:AnswerID"`
+	Attachments   []Attachment
 	CreatedAt     time.Time
 }
 
 type Attachment struct {
-	ID         string `gorm:"primaryKey"`
+	ID         string
 	Type       AttachmentType
 	URL        string
 	Thumbnail  *string
 	PoseID     *string
-	Pose       *PoseData   `gorm:"foreignKey:PoseID"`
-	Meta       string      `gorm:"type:jsonb"` // JSON文字列で格納
-	OriginalID *string     // スケルトン動画の場合、元動画のID
-	Original   *Attachment `gorm:"foreignKey:OriginalID"`
+	Pose       *PoseData
+	Meta       string
+	OriginalID *string
+	Original   *Attachment
 	QuestionID *string
 	AnswerID   *string
 }
@@ -55,7 +57,7 @@ const (
 )
 
 type PoseData struct {
-	ID        string `gorm:"primaryKey"`
-	Keypoints string
-	Score     float64
+	ID             string
+	ParticipantIDs []string
+	Score          float64
 }

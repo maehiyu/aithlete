@@ -1,0 +1,40 @@
+import type { ChatCreateRequest, ChatDetailResponse, ChatSummaryResponse, ChatUpdateRequest } from "../type/type";
+import { apiFetch } from "./apiClient";
+import toCamelCase from "../utils/toCamelCase";
+
+
+export async function fetchChats(): Promise<ChatSummaryResponse[]> {
+    const res = await apiFetch<any[]>("/chats");
+    return toCamelCase<ChatSummaryResponse[]>(res);
+}
+
+
+export async function fetchChat(chatId: string): Promise<ChatDetailResponse> {
+	const res = await apiFetch<any>(`/chats/${chatId}`);
+	return toCamelCase<ChatDetailResponse>(res);
+}
+
+
+export async function createChat(data: ChatCreateRequest): Promise<ChatDetailResponse> {
+	const res = await apiFetch<any>("/chats", {
+		method: "POST",
+		body: data,
+	});
+	return toCamelCase<ChatDetailResponse>(res);
+}
+
+
+export async function updateChat(chatId: string, data: ChatUpdateRequest): Promise<ChatDetailResponse> {
+	const res = await apiFetch<any>(`/chats/${chatId}`, {
+		method: "PUT",
+		body: data,
+	});
+	return toCamelCase<ChatDetailResponse>(res);
+}
+
+export async function deleteChat(chatId: string): Promise<void> {
+	await apiFetch(`/api/chats/${chatId}`, {
+		method: "DELETE"
+	});
+}
+

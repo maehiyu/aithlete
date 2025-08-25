@@ -1,8 +1,9 @@
-package service
+package command
 
 import (
 	"api/application/dto"
 	"api/domain/entity"
+
 	"testing"
 )
 
@@ -12,9 +13,9 @@ func TestCreateChat_Success(t *testing.T) {
 		return request, nil
 	}
 
-	participantSvc := NewMockParticipantCommandService()
-	participantSvc.FindParticipantByIDFunc = func(id string) (*dto.ParticipantResponse, error) {
-		return &dto.ParticipantResponse{
+	participantSvc := NewMockParticipantRepository()
+	participantSvc.FindByIDFunc = func(id string) (*entity.Participant, error) {
+		return &entity.Participant{
 			ID:   id,
 			Name: "testuser",
 		}, nil
@@ -22,7 +23,7 @@ func TestCreateChat_Success(t *testing.T) {
 
 	service := &ChatCommandService{
 		chatRepo:                  chatRepo,
-		ParticipantCommandService: participantSvc,
+		ParticipantRepo:           participantSvc,
 	}
 
 	reqTitle := "test chat"
@@ -52,10 +53,13 @@ func TestUpdateChat_Success(t *testing.T) {
 		oldTitle := "old title"
 		return &entity.Chat{ID: chatId, Title: &oldTitle}, nil
 	}
-	
-	participantSvc := NewMockParticipantCommandService()
-	participantSvc.FindParticipantByIDFunc = func(id string) (*dto.ParticipantResponse, error) {
-		return &dto.ParticipantResponse{
+	chatRepo.UpdateChatFunc = func(chat *entity.Chat) (*entity.Chat, error) {
+		return chat, nil
+	}
+
+	participantSvc := NewMockParticipantRepository()
+	participantSvc.FindByIDFunc = func(id string) (*entity.Participant, error) {
+		return &entity.Participant{
 			ID:   id,
 			Name: "testuser",
 		}, nil
@@ -63,7 +67,7 @@ func TestUpdateChat_Success(t *testing.T) {
 
 	service := &ChatCommandService{
 		chatRepo:                  chatRepo,
-		ParticipantCommandService: participantSvc,
+		ParticipantRepo:           participantSvc,
 	}
 
 	reqTitle := "new titile"
@@ -72,7 +76,7 @@ func TestUpdateChat_Success(t *testing.T) {
 		ParticipantIDs: []string{"1"},
 	}
 
-	resp, err := service.UpdateChat(req)
+	resp, err := service.UpdateChat("1", req)
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}

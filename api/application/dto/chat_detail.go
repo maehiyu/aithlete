@@ -18,6 +18,7 @@ type ParticipantResponse struct {
 	Email   string `json:"email"`
 	Role    string `json:"role"`
 	IconURL *string `json:"icon_url"`
+	Sports  []string `json:"sports"`
 }
 
 type QuestionDetailResponse struct {

@@ -4,9 +4,9 @@ import "time"
 
 type ChatSummaryResponse struct {
 	ID           string `json:"id"`
-	Title        string `json:"title"`
+	Title        *string `json:"title"`
 	LastActiveAt time.Time `json:"last_active_at"`
-	LatestQA     string `json:"latest_qa"`
+	LatestQA     *string `json:"latest_qa"`
 	Opponent     OpponentResponse `json:"opponent"`
 }
 

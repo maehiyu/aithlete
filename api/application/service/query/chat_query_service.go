@@ -7,15 +7,15 @@ import (
 )
 
 type ChatQueryService struct {
-	queryService query.ChatQueryServiceInterface
+	chatQuery query.ChatQueryInterface
 }
 
-func NewChatQueryService(qs query.ChatQueryServiceInterface) *ChatQueryService {
-	return &ChatQueryService{queryService: qs}
+func NewChatQueryService(qs query.ChatQueryInterface) *ChatQueryService {
+	return &ChatQueryService{chatQuery: qs}
 }
-
-func (s *ChatQueryService) FindChatsByUserID(userID string) ([]dto.ChatSummaryResponse, error) {
-	chats, err := s.queryService.FindChatsByUserID(userID)
+	
+func (s *ChatQueryService) GetChatsByUserID(userID string) ([]dto.ChatSummaryResponse, error) {
+	chats, err := s.chatQuery.FindChatsByUserID(userID)
 
 	if err != nil {
 		return nil, err
@@ -25,8 +25,8 @@ func (s *ChatQueryService) FindChatsByUserID(userID string) ([]dto.ChatSummaryRe
 	return chats, nil
 }
 
-func (s *ChatQueryService) FindChatByID(chatID string) (*dto.ChatDetailResponse, error) {
-	return s.queryService.FindChatByID(chatID)
+func (s *ChatQueryService) GetChatByID(chatID string) (*dto.ChatDetailResponse, error) {
+	return s.chatQuery.FindChatByID(chatID)
 }
 
 func SortChatsByLastActive(chats []dto.ChatSummaryResponse) {

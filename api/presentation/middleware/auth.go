@@ -8,7 +8,7 @@ import (
 )
 
 // ContextKeyUserID is the key used to store userID in Gin context
-const ContextKeyUserID = "userId"
+const ContextKeyUserID = "user1"
 
 // AuthMiddleware extracts userId from JWT (dummy implementation)
 func AuthMiddleware() gin.HandlerFunc {

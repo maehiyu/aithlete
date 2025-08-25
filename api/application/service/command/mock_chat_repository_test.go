@@ -1,4 +1,4 @@
-package service
+package command
 
 import "api/domain/entity"
 

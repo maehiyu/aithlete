@@ -3,12 +3,14 @@ services:
 
   frontend:
     build: ./frontend
+    environment:
+      REACT_APP_API_BASE_URL: ${REACT_APP_API_BASE_URL}
     ports:
       - "3000:3000"
     depends_on:
       - api
-      - ws
-      - broker
+      # - ws
+      # - broker
   broker:
     image: redis:7
     restart: always
@@ -20,14 +22,18 @@ services:
     build: ./api
     environment:
       - DB_HOST=db
+      - DB_USER=${POSTGRES_USER}
+      - DB_PASSWORD=${POSTGRES_PASSWORD}
+      - DB_NAME=${POSTGRES_DB}
+      - DB_PORT=5432
       - NOSQL_HOST=nosql
       - BROKER_HOST=broker
     ports:
       - "8000:8000"
     depends_on:
       - db
-      - nosql
-      - broker
+      # - nosql
+      # - broker
 
   ws:
     build: ./ws
@@ -65,21 +71,22 @@ services:
     image: postgres:15
     restart: always
     environment:
-      POSTGRES_USER: user
-      POSTGRES_PASSWORD: password
-      POSTGRES_DB: appdb
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
     ports:
       - "5432:5432"
     volumes:
       - db_data:/var/lib/postgresql/data
+      - ./api/init.sql:/docker-entrypoint-initdb.d/init.sql
 
   nosql:
     image: mongo:6
     restart: always
     environment:
-      MONGO_INITDB_ROOT_USERNAME: user
-      MONGO_INITDB_ROOT_PASSWORD: password
-      MONGO_INITDB_DATABASE: ragdb
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_INITDB_ROOT_USERNAME}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_INITDB_ROOT_PASSWORD}
+      MONGO_INITDB_DATABASE: ${MONGO_INITDB_DATABASE}
     ports:
       - "27017:27017"
     volumes:
@@ -89,8 +96,8 @@ services:
     image: minio/minio:latest
     command: server /data
     environment:
-      MINIO_ROOT_USER: minio
-      MINIO_ROOT_PASSWORD: minio123
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD}
     ports:
       - "9001:9000"
     volumes:

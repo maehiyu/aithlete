@@ -2,7 +2,7 @@ package query
 
 import "api/application/dto"
 
-type ChatQueryServiceInterface interface {
+type ChatQueryInterface interface {
 	FindChatsByUserID(userID string) ([]dto.ChatSummaryResponse, error)
 	FindChatByID(chatID string) (*dto.ChatDetailResponse, error)
 }

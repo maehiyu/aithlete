@@ -1,44 +1,61 @@
 package main
 
 import (
-	"api/application/service"
-	"api/domain/entity"
+	"api/application/service/command"
+	appquery "api/application/service/query"
+	infraquery "api/infrastructure/query"
+	"api/infrastructure/repository"
 	"api/presentation/handler"
 	"api/presentation/middleware"
+	"context"
 	"log"
 	"os"
 
+	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
-	"gorm.io/driver/postgres"
-	"gorm.io/gorm"
+	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 func main() {
 	r := gin.Default()
-	// DB接続設定
-	dsn := "host=" + os.Getenv("DB_HOST") +
-		" user=" + os.Getenv("DB_USER") +
-		" password=" + os.Getenv("DB_PASSWORD") +
-		" dbname=" + os.Getenv("DB_NAME") +
-		" port=" + os.Getenv("DB_PORT") +
-		" sslmode=disable TimeZone=Asia/Tokyo"
-	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
+	r.Use(cors.New(cors.Config{
+		AllowOrigins:     []string{"http://localhost:3000"},
+		AllowMethods:     []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
+		AllowHeaders:     []string{"Origin", "Content-Type", "Authorization"},
+		AllowCredentials: true,
+	}))
+
+	dsn := os.Getenv("PGX_DSN")
+	if dsn == "" {
+		dsn = "postgres://" + os.Getenv("DB_USER") + ":" + os.Getenv("DB_PASSWORD") + "@" + os.Getenv("DB_HOST") + ":" + os.Getenv("DB_PORT") + "/" + os.Getenv("DB_NAME") + "?sslmode=disable"
+	}
+
+	pool, err := pgxpool.New(context.Background(), dsn)
 	if err != nil {
 		log.Fatalf("failed to connect database: %v", err)
 	}
 
-	// テーブル自動生成（マイグレーション）
-	err = db.AutoMigrate(&entity.Chat{}, &entity.Question{}, &entity.Answer{}, &entity.Attachment{}, &entity.PoseData{})
-	if err != nil {
-		log.Fatalf("failed to migrate database: %v", err)
-	}
 	r.Use(middleware.AuthMiddleware())
 
-	// ChatQueryServiceの生成
-	// ここではquery層の実装を仮でnilにしています。実装に合わせて差し替えてください。
-	chatQueryService := service.NewChatQueryService(nil)
+	chatRepository := repository.NewChatRepository(pool)
+	participantRepository := repository.NewParticipantRepository(pool)
 
+	chatQuery := infraquery.NewChatQuery(pool)
+	participantQuery := infraquery.NewParticipantQuery(pool)
+
+	chatQueryService := appquery.NewChatQueryService(chatQuery)
+	participantQueryService := appquery.NewParticipantQueryService(participantQuery)
+
+	chatCommandService := command.NewChatCommandService(chatRepository, participantRepository)
+	participantCommandService := command.NewParticipantCommandService(participantRepository)
+
+	r.GET("/chats/:id", handler.HandleGetChat(chatQueryService))
+	r.PUT("/chats/:id", handler.HandleUpdateChat(chatCommandService))
 	r.GET("/chats", handler.HandleGetChats(chatQueryService))
+	r.POST("/chats", handler.HandleCreateChat(chatCommandService))
+	r.GET("/participants/:id", handler.HandleGetParticipant(participantQueryService))
+	r.POST("/participants", handler.HandleCreateParticipant(participantCommandService))
+	r.PUT("/participants/:id", handler.HandleUpdateParticipant(participantCommandService))
 
 	r.GET("/", func(c *gin.Context) {
 		c.String(200, "Hello, Go API!")
