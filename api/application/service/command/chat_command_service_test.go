@@ -47,6 +47,88 @@ func TestCreateChat_Success(t *testing.T) {
 	}
 }
 
+
+func TestSendQuestion_Success(t *testing.T) {
+	chatRepo := NewMockChatRepository()
+	chatRepo.AddQuestionFunc = func(chatId string, q *entity.Question) (*entity.Chat, error) {
+		return &entity.Chat{
+			ID: chatId,
+			Questions: []entity.Question{*q},
+			ParticipantIDs: []string{"1"},
+		}, nil
+	}
+
+	participantSvc := NewMockParticipantRepository()
+	participantSvc.FindByIDFunc = func(id string) (*entity.Participant, error) {
+		return &entity.Participant{
+			ID:   id,
+			Name: "testuser",
+		}, nil
+	}
+
+	service := &ChatCommandService{
+		chatRepo:        chatRepo,
+		ParticipantRepo: participantSvc,
+	}
+
+	req := dto.QuestionCreateRequest{
+		ParticipantID: "1",
+		Content:       "test question",
+	}
+
+	resp, err := service.SendQuestion("1", req)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if len(resp.Questions) != 1 {
+		t.Errorf("expected 1 question, got %d", len(resp.Questions))
+	}
+	if resp.Questions[0].Content != "test question" {
+		t.Errorf("expected question content 'test question', got %v", resp.Questions[0].Content)
+	}
+}
+
+func TestSendAnswer_Success(t *testing.T) {
+	chatRepo := NewMockChatRepository()
+	chatRepo.AddAnswerFunc = func(chatId string, a *entity.Answer) (*entity.Chat, error) {
+		return &entity.Chat{
+			ID: chatId,
+			Answers: []entity.Answer{*a},
+			ParticipantIDs: []string{"1"},
+		}, nil
+	}
+
+	participantSvc := NewMockParticipantRepository()
+	participantSvc.FindByIDFunc = func(id string) (*entity.Participant, error) {
+		return &entity.Participant{
+			ID:   id,
+			Name: "testuser",
+		}, nil
+	}
+
+	service := &ChatCommandService{
+		chatRepo:        chatRepo,
+		ParticipantRepo: participantSvc,
+	}
+
+	req := dto.AnswerCreateRequest{
+		QuestionID:    "q1",
+		ParticipantID: "1",
+		Content:       "test answer",
+	}
+
+	resp, err := service.SendAnswer("1", req)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if len(resp.Answers) != 1 {
+		t.Errorf("expected 1 answer, got %d", len(resp.Answers))
+	}
+	if resp.Answers[0].Content != "test answer" {
+		t.Errorf("expected answer content 'test answer', got %v", resp.Answers[0].Content)
+	}
+}
+
 func TestUpdateChat_Success(t *testing.T) {
 	chatRepo := NewMockChatRepository()
 	chatRepo.FindChatByIDFunc = func(chatId string) (*entity.Chat, error) {

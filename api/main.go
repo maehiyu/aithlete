@@ -49,6 +49,8 @@ func main() {
 	chatCommandService := command.NewChatCommandService(chatRepository, participantRepository)
 	participantCommandService := command.NewParticipantCommandService(participantRepository)
 
+	r.POST("/chats/:id/questions", handler.HandleSendQuestion(chatCommandService))
+	r.POST("/chats/:id/answers", handler.HandleSendAnswer(chatCommandService))
 	r.GET("/chats/:id", handler.HandleGetChat(chatQueryService))
 	r.PUT("/chats/:id", handler.HandleUpdateChat(chatCommandService))
 	r.GET("/chats", handler.HandleGetChats(chatQueryService))

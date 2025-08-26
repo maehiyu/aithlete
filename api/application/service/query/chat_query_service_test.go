@@ -13,8 +13,10 @@ func TestFindChatsByUserID(t *testing.T) {
 		title2 := "Chat 2"
 		latestQA1 := "Q1: Hello? A1: Hi!"
 		latestQA2 := "Q2: Bye? A2: See you!"
-		opponent1 := dto.OpponentResponse{ID: "op1", Name: "Alice", Role: "user", IconURL: "http://example.com/alice.png"}
-		opponent2 := dto.OpponentResponse{ID: "op2", Name: "Bob", Role: "user", IconURL: "http://example.com/bob.png"}
+		IconURL1 := "http://example.com/alice.png"
+		IconURL2 := "http://example.com/bob.png"
+		opponent1 := dto.OpponentResponse{ID: "op1", Name: "Alice", Role: "user", IconURL: &IconURL1}
+		opponent2 := dto.OpponentResponse{ID: "op2", Name: "Bob", Role: "user", IconURL: &IconURL2}
 		return []dto.ChatSummaryResponse{
 			{
 				ID:           "1",
@@ -55,8 +57,8 @@ func TestFindChatByID(t *testing.T) {
 			Participants: []dto.ParticipantResponse{
 				{ID: "user-123", Name: "Alice", Email: "alice@example.com", Role: "user", IconURL: nil},
 			},
-			Questions:    []dto.QuestionDetailResponse{},
-			Answers:      []dto.AnswerDetailResponse{},
+			Questions:    []dto.QuestionResponse{},
+			Answers:      []dto.AnswerResponse{},
 			StartedAt:    time.Now(),
 			LastActiveAt: time.Now(),
 		}, nil

@@ -7,13 +7,13 @@ import (
 
 func ChatCreateRequestToEntity(dto ChatCreateRequest, id string, now time.Time) *entity.Chat {
 	return &entity.Chat{
-		ID:            id,
-		Title:         dto.Title,
+		ID:             id,
+		Title:          dto.Title,
 		ParticipantIDs: dto.ParticipantIDs,
-		Questions:     []entity.Question{},
-		Answers:       []entity.Answer{},
-		StartedAt:     now,
-		LastActiveAt:  now,
+		Questions:      []entity.Question{},
+		Answers:        []entity.Answer{},
+		StartedAt:      now,
+		LastActiveAt:   now,
 	}
 }
 
@@ -31,11 +31,40 @@ func ChatEntityToDetailResponse(chat *entity.Chat, participants []ParticipantRes
 		ID:           chat.ID,
 		Title:        chat.Title,
 		Participants: participants,
-		Questions:    []QuestionDetailResponse{},
-		Answers:      []AnswerDetailResponse{},
+		Questions:    QuestionsEntityToResponse(chat.Questions),
+		Answers:      AnswersEntityToResponse(chat.Answers),
 		StartedAt:    chat.StartedAt,
 		LastActiveAt: chat.LastActiveAt,
 	}
+}
+
+func QuestionsEntityToResponse(questions []entity.Question) []QuestionResponse {
+	res := make([]QuestionResponse, len(questions))
+	for i, q := range questions {
+		res[i] = QuestionResponse{
+			ID:            q.ID,
+			ParticipantID: q.ParticipantID,
+			Content:       q.Content,
+			CreatedAt:     q.CreatedAt,
+			Attachments:   []AttachmentResponse{}, // Add mapping if needed
+		}
+	}
+	return res
+}
+
+func AnswersEntityToResponse(answers []entity.Answer) []AnswerResponse {
+	res := make([]AnswerResponse, len(answers))
+	for i, a := range answers {
+		res[i] = AnswerResponse{
+			ID:            a.ID,
+			QuestionID:    a.QuestionID,
+			ParticipantID: a.ParticipantID,
+			Content:       a.Content,
+			CreatedAt:     a.CreatedAt,
+			Attachments:   []AttachmentResponse{}, // Add mapping if needed
+		}
+	}
+	return res
 }
 
 func ParticipantEntityToResponse(p *entity.Participant) ParticipantResponse {
@@ -69,5 +98,26 @@ func ParticipantUpdateRequestToEntity(participant *entity.Participant, dto Parti
 	}
 	if dto.IconURL != nil {
 		participant.IconURL = dto.IconURL
+	}
+}
+
+func QuestionCreateRequestToEntity(dto QuestionCreateRequest, id string, chatId string, now time.Time) *entity.Question {
+	return &entity.Question{
+		ID:            id,
+		ChatID:        chatId,
+		ParticipantID: dto.ParticipantID,
+		Content:       dto.Content,
+		CreatedAt:     now,
+	}
+}
+
+func AnswerCreateRequestToEntity(dto AnswerCreateRequest, id string, chatId string, questionID string, now time.Time) *entity.Answer {
+	return &entity.Answer{
+		ID:            id,
+		ChatID:        chatId,
+		QuestionID:    questionID,
+		ParticipantID: dto.ParticipantID,
+		Content:       dto.Content,
+		CreatedAt:     now,
 	}
 }

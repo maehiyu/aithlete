@@ -72,3 +72,39 @@ func HandleUpdateChat(chatCommandService *command.ChatCommandService) gin.Handle
 		c.JSON(http.StatusOK, chat)
 	}
 }
+
+func HandleSendQuestion(chatCommandService *command.ChatCommandService) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		chatID := c.Param("id")
+		var req dto.QuestionCreateRequest
+		if err := c.ShouldBindJSON(&req); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			return
+		}
+
+		question, err := chatCommandService.SendQuestion(chatID, req)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+		c.JSON(http.StatusCreated, question)
+	}
+}
+
+func HandleSendAnswer(chatCommandService *command.ChatCommandService) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		chatID := c.Param("id")
+		var req dto.AnswerCreateRequest
+		if err := c.ShouldBindJSON(&req); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			return
+		}
+
+		answer, err := chatCommandService.SendAnswer(chatID, req)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+		c.JSON(http.StatusCreated, answer)
+	}
+}

@@ -69,5 +69,46 @@ func (s *ChatCommandService) UpdateChat(chatID string, chat dto.ChatUpdateReques
 	return &chatDetail, nil
 }
 
+func (s *ChatCommandService) SendQuestion(chatID string, req dto.QuestionCreateRequest) (*dto.ChatDetailResponse, error) {
+	questionEntity := dto.QuestionCreateRequestToEntity(req, uuid.NewString(), chatID, time.Now())
 
+	updatedChat, err := s.chatRepo.AddQuestion(chatID, questionEntity)
+	if err != nil {
+		return nil, err
+	}
 
+	participants := make([]dto.ParticipantResponse, 0, len(updatedChat.ParticipantIDs))
+
+	for _, id := range updatedChat.ParticipantIDs {
+		p, err := s.ParticipantRepo.FindByID(id)
+		if err != nil {
+			return nil, err
+		}
+		participants = append(participants, dto.ParticipantEntityToResponse(p))
+	}
+
+	chatDetail := dto.ChatEntityToDetailResponse(updatedChat, participants)
+	return &chatDetail, nil
+}
+
+func (s *ChatCommandService) SendAnswer(chatID string, req dto.AnswerCreateRequest) (*dto.ChatDetailResponse, error) {
+	answerEntity := dto.AnswerCreateRequestToEntity(req, uuid.NewString(), chatID, req.QuestionID, time.Now())
+
+	updatedChat, err := s.chatRepo.AddAnswer(chatID, answerEntity)
+	if err != nil {
+		return nil, err
+	}
+
+	participants := make([]dto.ParticipantResponse, 0, len(updatedChat.ParticipantIDs))
+
+	for _, id := range updatedChat.ParticipantIDs {
+		p, err := s.ParticipantRepo.FindByID(id)
+		if err != nil {
+			return nil, err
+		}
+		participants = append(participants, dto.ParticipantEntityToResponse(p))
+	}
+
+	chatDetail := dto.ChatEntityToDetailResponse(updatedChat, participants)
+	return &chatDetail, nil
+}

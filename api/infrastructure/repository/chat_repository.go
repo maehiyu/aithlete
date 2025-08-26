@@ -278,5 +278,89 @@ func (r *ChatRepositoryImpl) UpdateChat(chat *entity.Chat) (*entity.Chat, error)
 	return chat, nil
 }
 
+func (r *ChatRepositoryImpl) AddQuestion(chatId string, question *entity.Question) (*entity.Chat, error) {
+	ctx := context.Background()
+	conn, err := r.conn.Acquire(ctx)
+	if err != nil {
+		return nil, err
+	}
+	defer conn.Release()
+	tx, err := conn.Begin(ctx)
+	if err != nil {
+		return nil, err
+	}
+	defer func() {
+		if err != nil {
+			tx.Rollback(ctx)
+		}
+	}()
+
+	// Insert question
+	_, err = tx.Exec(ctx,
+		`INSERT INTO questions (id, chat_id, participant_id, content, created_at) VALUES ($1, $2, $3, $4, $5)`,
+		question.ID, chatId, question.ParticipantID, question.Content, question.CreatedAt,
+	)
+	if err != nil {
+		return nil, err
+	}
+	// Insert attachments (if any)
+	for _, a := range question.Attachments {
+		_, err = tx.Exec(ctx,
+			`INSERT INTO attachments (id, type, url, thumbnail, pose_id, meta, original_id, question_id, answer_id) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9)`,
+			a.ID, a.Type, a.URL, a.Thumbnail, a.PoseID, a.Meta, a.OriginalID, a.QuestionID, a.AnswerID,
+		)
+		if err != nil {
+			return nil, err
+		}
+	}
+	if err = tx.Commit(ctx); err != nil {
+		return nil, err
+	}
+	// Return updated chat
+	return r.FindChatByID(chatId)
+}
+
+func (r *ChatRepositoryImpl) AddAnswer(chatId string, answer *entity.Answer) (*entity.Chat, error) {
+	ctx := context.Background()
+	conn, err := r.conn.Acquire(ctx)
+	if err != nil {
+		return nil, err
+	}
+	defer conn.Release()
+	tx, err := conn.Begin(ctx)
+	if err != nil {
+		return nil, err
+	}
+	defer func() {
+		if err != nil {
+			tx.Rollback(ctx)
+		}
+	}()
+
+	// Insert answer
+	_, err = tx.Exec(ctx,
+		`INSERT INTO answers (id, chat_id, question_id, participant_id, content, created_at) VALUES ($1,$2,$3,$4,$5,$6)`,
+		answer.ID, chatId, answer.QuestionID, answer.ParticipantID, answer.Content, answer.CreatedAt,
+	)
+	if err != nil {
+		return nil, err
+	}
+	// Insert attachments (if any)
+	for _, a := range answer.Attachments {
+		_, err = tx.Exec(ctx,
+			`INSERT INTO attachments (id, type, url, thumbnail, pose_id, meta, original_id, question_id, answer_id) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9)`,
+			a.ID, a.Type, a.URL, a.Thumbnail, a.PoseID, a.Meta, a.OriginalID, a.QuestionID, a.AnswerID,
+		)
+		if err != nil {
+			return nil, err
+		}
+	}
+	if err = tx.Commit(ctx); err != nil {
+		return nil, err
+	}
+	// Return updated chat
+	return r.FindChatByID(chatId)
+}
+
 // domain/repository.ChatRepositoryインターフェースを満たす
 var _ repository.ChatRepositoryInterface = (*ChatRepositoryImpl)(nil)

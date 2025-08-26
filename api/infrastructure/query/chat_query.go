@@ -67,7 +67,7 @@ func (q *ChatQuery) FindChatsByUserID(userID string) ([]dto.ChatSummaryResponse,
 				ID:      *opponentID,
 				Name:    derefString(opponentName),
 				Role:    derefString(opponentRole),
-				IconURL: derefString(opponentIconURL),
+				IconURL: opponentIconURL,
 			}
 		}
 		result = append(result, chat)
@@ -121,9 +121,9 @@ func (q *ChatQuery) FindChatByID(chatID string) (*dto.ChatDetailResponse, error)
 		return nil, err
 	}
 	defer qRows.Close()
-	questions := []dto.QuestionDetailResponse{}
+	questions := []dto.QuestionResponse{}
 	for qRows.Next() {
-		var qd dto.QuestionDetailResponse
+		var qd dto.QuestionResponse
 		if err := qRows.Scan(&qd.ID, &qd.ParticipantID, &qd.Content, &qd.CreatedAt); err != nil {
 			return nil, err
 		}
@@ -158,9 +158,9 @@ func (q *ChatQuery) FindChatByID(chatID string) (*dto.ChatDetailResponse, error)
 		return nil, err
 	}
 	defer aRows.Close()
-	answers := []dto.AnswerDetailResponse{}
+	answers := []dto.AnswerResponse{}
 	for aRows.Next() {
-		var ad dto.AnswerDetailResponse
+		var ad dto.AnswerResponse
 		if err := aRows.Scan(&ad.ID, &ad.QuestionID, &ad.ParticipantID, &ad.Content, &ad.CreatedAt); err != nil {
 			return nil, err
 		}

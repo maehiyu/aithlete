@@ -36,6 +36,13 @@ func TestParticipantRepositoryImpl_CRUD(t *testing.T) {
 		Role:   "player",
 		Sports: []string{"soccer", "tennis"},
 	}
+
+	// クリーンアップ: テストデータ削除
+	defer func() {
+		ctx := context.Background()
+		pool.Exec(ctx, "DELETE FROM participants WHERE id = $1", p.ID)
+	}()
+
 	created, err := repo.Create(p)
 	assert.NoError(t, err)
 	assert.Equal(t, "test_p1", created.ID)

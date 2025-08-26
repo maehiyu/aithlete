@@ -1,13 +1,10 @@
 package repository_test
 
 import (
+	repo "api/infrastructure/repository"
 	"context"
 	"os"
 	"testing"
-	"time"
-
-	"api/domain/entity"
-	repo "api/infrastructure/repository"
 
 	"github.com/jackc/pgx/v5/pgxpool"
 )
@@ -27,33 +24,46 @@ func setupTestRepositoryPool(t *testing.T) *pgxpool.Pool {
 func TestChatRepository_CreateAndFind(t *testing.T) {
 	pool := setupTestRepositoryPool(t)
 	defer pool.Close()
-	// PoolではトランザクションはConn単位で取得する必要があるが、
-	// ここでは簡易的にPoolを直接使う
 	repository := repo.NewChatRepository(pool)
 
-	chat := &entity.Chat{
-		ID:             "test_chat1",
-		StartedAt:      time.Now(),
-		LastActiveAt:   time.Now(),
-		Title:          nil,
-		ParticipantIDs: []string{"test_user1", "test_user2"},
-	}
+	// 既定データを利用
+	chatID := "chat1"
+	questionID := "q1"
+	answerID := "a1"
 
-	created, err := repository.CreateChat(chat)
-	if err != nil {
-		t.Fatalf("CreateChat failed: %v", err)
-	}
-	if created.ID != chat.ID {
-		t.Errorf("expected ID %s, got %s", chat.ID, created.ID)
-	}
-
-	found, err := repository.FindChatByID("test_chat1")
+	found, err := repository.FindChatByID(chatID)
 	if err != nil {
 		t.Fatalf("FindChatByID failed: %v", err)
 	}
-	if found.ID != chat.ID {
-		t.Errorf("expected ID %s, got %s", chat.ID, found.ID)
+	if found.ID != chatID {
+		t.Errorf("expected ID %s, got %s", chatID, found.ID)
 	}
+
+	t.Run("CheckQuestionExists", func(t *testing.T) {
+		foundQ := false
+		for _, qq := range found.Questions {
+			if qq.ID == questionID {
+				foundQ = true
+				break
+			}
+		}
+		if !foundQ {
+			t.Errorf("question %s not found in chat %s", questionID, chatID)
+		}
+	})
+
+	t.Run("CheckAnswerExists", func(t *testing.T) {
+		foundA := false
+		for _, aa := range found.Answers {
+			if aa.ID == answerID {
+				foundA = true
+				break
+			}
+		}
+		if !foundA {
+			t.Errorf("answer %s not found in chat %s", answerID, chatID)
+		}
+	})
 }
 
 func TestChatRepository_UpdateChat(t *testing.T) {
@@ -61,24 +71,24 @@ func TestChatRepository_UpdateChat(t *testing.T) {
 	defer pool.Close()
 	repository := repo.NewChatRepository(pool)
 
-	chat := &entity.Chat{
-		ID:             "test_chat2",
-		StartedAt:      time.Now(),
-		LastActiveAt:   time.Now(),
-		Title:          nil,
-		ParticipantIDs: []string{"test_user1", "test_user2"},
-	}
-	if _, err := repository.CreateChat(chat); err != nil {
-		t.Fatalf("CreateChat failed: %v", err)
+	chatID := "chat1"
+	found, err := repository.FindChatByID(chatID)
+	if err != nil {
+		t.Fatalf("FindChatByID failed: %v", err)
 	}
 
+	// タイトルを更新
 	title := "updated title"
-	chat.Title = &title
-	updated, err := repository.UpdateChat(chat)
+	found.Title = &title
+	updated, err := repository.UpdateChat(found)
 	if err != nil {
 		t.Fatalf("UpdateChat failed: %v", err)
 	}
 	if updated.Title == nil || *updated.Title != title {
 		t.Errorf("expected title %s, got %v", title, updated.Title)
 	}
+	// 元に戻す
+	origTitle := "テストチャット"
+	found.Title = &origTitle
+	_, _ = repository.UpdateChat(found)
 }
