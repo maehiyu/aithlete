@@ -121,3 +121,26 @@ func AnswerCreateRequestToEntity(dto AnswerCreateRequest, id string, chatId stri
 		CreatedAt:     now,
 	}
 }
+
+func QuestionEntityToResponse(q *entity.Question) QuestionResponse {
+	return QuestionResponse{
+		ID:            q.ID,
+		ChatID:        q.ChatID,
+		ParticipantID: q.ParticipantID,
+		Content:       q.Content,
+		CreatedAt:     q.CreatedAt,
+		Attachments:   []AttachmentResponse{}, // Add mapping if needed
+	}
+}
+
+func AnswerEntityToResponse(a *entity.Answer) AnswerResponse {
+	return AnswerResponse{
+		ID:            a.ID,
+		ChatID:        a.ChatID,
+		QuestionID:    a.QuestionID,
+		ParticipantID: a.ParticipantID,
+		Content:       a.Content,
+		CreatedAt:     a.CreatedAt,
+		Attachments:   []AttachmentResponse{}, // Add mapping if needed
+	}
+}

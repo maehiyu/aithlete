@@ -1,20 +1,23 @@
 package command
 
 import (
+	"api/application/broker"
 	"api/application/dto"
 	"api/domain/repository"
+	"context"
 	"time"
 
 	"github.com/google/uuid"
 )
 
 type ChatCommandService struct {
-	chatRepo                  repository.ChatRepositoryInterface
-	ParticipantRepo            repository.ParticipantRepositoryInterface
+	chatRepo        repository.ChatRepositoryInterface
+	ParticipantRepo repository.ParticipantRepositoryInterface
+	EventPublisher  broker.ChatEventPublisher
 }
 
-func NewChatCommandService(cr repository.ChatRepositoryInterface, pr repository.ParticipantRepositoryInterface) *ChatCommandService {
-	return &ChatCommandService{chatRepo: cr, ParticipantRepo: pr}
+func NewChatCommandService(cr repository.ChatRepositoryInterface, pr repository.ParticipantRepositoryInterface, ep broker.ChatEventPublisher) *ChatCommandService {
+	return &ChatCommandService{chatRepo: cr, ParticipantRepo: pr, EventPublisher: ep}
 }
 
 func (s *ChatCommandService) CreateChat(chat dto.ChatCreateRequest) (*dto.ChatDetailResponse, error) {
@@ -39,13 +42,12 @@ func (s *ChatCommandService) CreateChat(chat dto.ChatCreateRequest) (*dto.ChatDe
 	return &chatDetail, nil
 }
 
-
 func (s *ChatCommandService) UpdateChat(chatID string, chat dto.ChatUpdateRequest) (*dto.ChatDetailResponse, error) {
 	chatEntity, err := s.chatRepo.FindChatByID(chatID)
 	if err != nil {
 		return nil, err
 	}
-	
+
 	// DTOの値を適用
 	dto.ChatUpdateRequestToEntity(chatEntity, chat)
 
@@ -54,7 +56,7 @@ func (s *ChatCommandService) UpdateChat(chatID string, chat dto.ChatUpdateReques
 	if err != nil {
 		return nil, err
 	}
-	
+
 	participants := make([]dto.ParticipantResponse, 0, len(updatedChat.ParticipantIDs))
 
 	for _, id := range updatedChat.ParticipantIDs {
@@ -64,51 +66,83 @@ func (s *ChatCommandService) UpdateChat(chatID string, chat dto.ChatUpdateReques
 		}
 		participants = append(participants, dto.ParticipantEntityToResponse(p))
 	}
-	
+
 	chatDetail := dto.ChatEntityToDetailResponse(updatedChat, participants)
 	return &chatDetail, nil
 }
 
-func (s *ChatCommandService) SendQuestion(chatID string, req dto.QuestionCreateRequest) (*dto.ChatDetailResponse, error) {
+func (s *ChatCommandService) SendQuestion(chatID string, req dto.QuestionCreateRequest) (*dto.QuestionResponse, error) {
 	questionEntity := dto.QuestionCreateRequestToEntity(req, uuid.NewString(), chatID, time.Now())
 
-	updatedChat, err := s.chatRepo.AddQuestion(chatID, questionEntity)
+	err := s.chatRepo.AddQuestion(chatID, questionEntity)
 	if err != nil {
 		return nil, err
 	}
 
-	participants := make([]dto.ParticipantResponse, 0, len(updatedChat.ParticipantIDs))
+	questionResponse := dto.QuestionEntityToResponse(questionEntity)
 
-	for _, id := range updatedChat.ParticipantIDs {
-		p, err := s.ParticipantRepo.FindByID(id)
-		if err != nil {
-			return nil, err
-		}
-		participants = append(participants, dto.ParticipantEntityToResponse(p))
+	filtered, err := s.getOtherParticipantIDs(chatID, req.ParticipantID)
+	if err != nil {
+		return nil, err
 	}
 
-	chatDetail := dto.ChatEntityToDetailResponse(updatedChat, participants)
-	return &chatDetail, nil
+	if s.EventPublisher != nil {
+		event := dto.ChatEvent{
+			ID:        uuid.NewString(),
+			ChatID:    chatID,
+			Type:      "question",
+			From:      req.ParticipantID,
+			To:        filtered,
+			Timestamp: time.Now().Unix(),
+			Payload:   questionResponse,
+		}
+		_ = s.EventPublisher.PublishChatEvent(context.Background(), event)
+	}
+
+	return &questionResponse, nil
 }
 
-func (s *ChatCommandService) SendAnswer(chatID string, req dto.AnswerCreateRequest) (*dto.ChatDetailResponse, error) {
+func (s *ChatCommandService) SendAnswer(chatID string, req dto.AnswerCreateRequest) (*dto.AnswerResponse, error) {
 	answerEntity := dto.AnswerCreateRequestToEntity(req, uuid.NewString(), chatID, req.QuestionID, time.Now())
 
-	updatedChat, err := s.chatRepo.AddAnswer(chatID, answerEntity)
+	err := s.chatRepo.AddAnswer(chatID, answerEntity)
 	if err != nil {
 		return nil, err
 	}
 
-	participants := make([]dto.ParticipantResponse, 0, len(updatedChat.ParticipantIDs))
+	answerResponse := dto.AnswerEntityToResponse(answerEntity)
 
-	for _, id := range updatedChat.ParticipantIDs {
-		p, err := s.ParticipantRepo.FindByID(id)
-		if err != nil {
-			return nil, err
-		}
-		participants = append(participants, dto.ParticipantEntityToResponse(p))
+	filtered, err := s.getOtherParticipantIDs(chatID, req.ParticipantID)
+	if err != nil {
+		return nil, err
 	}
 
-	chatDetail := dto.ChatEntityToDetailResponse(updatedChat, participants)
-	return &chatDetail, nil
+	if s.EventPublisher != nil {
+		event := dto.ChatEvent{
+			ID:        uuid.NewString(),
+			ChatID:    chatID,
+			Type:      "answer",
+			From:      req.ParticipantID,
+			To:        filtered,
+			Timestamp: time.Now().Unix(),
+			Payload:   answerResponse,
+		}
+		_ = s.EventPublisher.PublishChatEvent(context.Background(), event)
+	}
+
+	return &answerResponse, nil
+}
+
+func (s *ChatCommandService) getOtherParticipantIDs(chatID, excludeID string) ([]string, error) {
+	ids, err := s.chatRepo.GetParticipantIDsByChatID(chatID)
+	if err != nil {
+		return nil, err
+	}
+	filtered := make([]string, 0, len(ids))
+	for _, id := range ids {
+		if id != excludeID {
+			filtered = append(filtered, id)
+		}
+	}
+	return filtered, nil
 }

@@ -10,13 +10,40 @@ import (
 	"context"
 	"log"
 	"os"
-
+	"strconv"
+	
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/jackc/pgx/v5/pgxpool"
+	"api/infrastructure/broker"
+	"github.com/redis/go-redis/v9"
 )
 
 func main() {
+	// Redis接続情報を環境変数から取得
+	redisHost := os.Getenv("BROKER_HOST")
+	if redisHost == "" {
+		redisHost = "broker"
+	}
+	redisPort := os.Getenv("BROKER_PORT")
+	if redisPort == "" {
+		redisPort = "6379"
+	}
+	redisPassword := os.Getenv("BROKER_PASSWORD")
+	redisDB := 0
+	if dbStr := os.Getenv("BROKER_DB"); dbStr != "" {
+		if n, err := strconv.Atoi(dbStr); err == nil {
+			redisDB = n
+		}
+	}
+
+	redisClient := redis.NewClient(&redis.Options{
+		Addr:     redisHost + ":" + redisPort,
+		Password: redisPassword,
+		DB:       redisDB,
+	})
+
+	eventPublisher := broker.NewRedisChatEventPublisher(redisClient, "chat_events")
 	r := gin.Default()
 	r.Use(cors.New(cors.Config{
 		AllowOrigins:     []string{"http://localhost:3000"},
@@ -46,7 +73,7 @@ func main() {
 	chatQueryService := appquery.NewChatQueryService(chatQuery)
 	participantQueryService := appquery.NewParticipantQueryService(participantQuery)
 
-	chatCommandService := command.NewChatCommandService(chatRepository, participantRepository)
+	chatCommandService := command.NewChatCommandService(chatRepository, participantRepository, eventPublisher)
 	participantCommandService := command.NewParticipantCommandService(participantRepository)
 
 	r.POST("/chats/:id/questions", handler.HandleSendQuestion(chatCommandService))

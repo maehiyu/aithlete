@@ -38,6 +38,7 @@ type OpponentResponse struct {
 
 type QuestionResponse struct {
 	ID            string    `json:"id"`
+	ChatID 		  string	`json:"chat_id"`
 	ParticipantID string    `json:"participant_id"`
 	Content       string    `json:"content"`
 	CreatedAt     time.Time `json:"created_at"`
@@ -46,6 +47,7 @@ type QuestionResponse struct {
 
 type AnswerResponse struct {
 	ID            string    `json:"id"`
+	ChatID 		  string	`json:"chat_id"`
 	QuestionID    string    `json:"question_id"`
 	ParticipantID string    `json:"participant_id"`
 	Content       string    `json:"content"`

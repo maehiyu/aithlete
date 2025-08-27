@@ -12,6 +12,9 @@ func TestCreateChat_Success(t *testing.T) {
 	chatRepo.CreateChatFunc = func(request *entity.Chat) (*entity.Chat, error) {
 		return request, nil
 	}
+	chatRepo.GetParticipantIDsByChatIDFunc = func(chatID string) ([]string, error) {
+		return []string{"1", "2"}, nil
+	}
 
 	participantSvc := NewMockParticipantRepository()
 	participantSvc.FindByIDFunc = func(id string) (*entity.Participant, error) {
@@ -22,8 +25,9 @@ func TestCreateChat_Success(t *testing.T) {
 	}
 
 	service := &ChatCommandService{
-		chatRepo:                  chatRepo,
-		ParticipantRepo:           participantSvc,
+		chatRepo:        chatRepo,
+		ParticipantRepo: participantSvc,
+		EventPublisher:  nil,
 	}
 
 	reqTitle := "test chat"
@@ -47,15 +51,13 @@ func TestCreateChat_Success(t *testing.T) {
 	}
 }
 
-
 func TestSendQuestion_Success(t *testing.T) {
 	chatRepo := NewMockChatRepository()
-	chatRepo.AddQuestionFunc = func(chatId string, q *entity.Question) (*entity.Chat, error) {
-		return &entity.Chat{
-			ID: chatId,
-			Questions: []entity.Question{*q},
-			ParticipantIDs: []string{"1"},
-		}, nil
+	chatRepo.AddQuestionFunc = func(chatId string, q *entity.Question) error {
+		return nil
+	}
+	chatRepo.GetParticipantIDsByChatIDFunc = func(chatID string) ([]string, error) {
+		return []string{"1", "2"}, nil
 	}
 
 	participantSvc := NewMockParticipantRepository()
@@ -69,6 +71,7 @@ func TestSendQuestion_Success(t *testing.T) {
 	service := &ChatCommandService{
 		chatRepo:        chatRepo,
 		ParticipantRepo: participantSvc,
+		EventPublisher:  nil,
 	}
 
 	req := dto.QuestionCreateRequest{
@@ -80,22 +83,18 @@ func TestSendQuestion_Success(t *testing.T) {
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
-	if len(resp.Questions) != 1 {
-		t.Errorf("expected 1 question, got %d", len(resp.Questions))
-	}
-	if resp.Questions[0].Content != "test question" {
-		t.Errorf("expected question content 'test question', got %v", resp.Questions[0].Content)
+	if resp.Content != "test question" {
+		t.Errorf("expected question content 'test question', got %v", resp.Content)
 	}
 }
 
 func TestSendAnswer_Success(t *testing.T) {
 	chatRepo := NewMockChatRepository()
-	chatRepo.AddAnswerFunc = func(chatId string, a *entity.Answer) (*entity.Chat, error) {
-		return &entity.Chat{
-			ID: chatId,
-			Answers: []entity.Answer{*a},
-			ParticipantIDs: []string{"1"},
-		}, nil
+	chatRepo.AddAnswerFunc = func(chatId string, a *entity.Answer) error {
+		return nil
+	}
+	chatRepo.GetParticipantIDsByChatIDFunc = func(chatID string) ([]string, error) {
+		return []string{"1", "2"}, nil
 	}
 
 	participantSvc := NewMockParticipantRepository()
@@ -109,6 +108,7 @@ func TestSendAnswer_Success(t *testing.T) {
 	service := &ChatCommandService{
 		chatRepo:        chatRepo,
 		ParticipantRepo: participantSvc,
+		EventPublisher:  nil,
 	}
 
 	req := dto.AnswerCreateRequest{
@@ -121,11 +121,8 @@ func TestSendAnswer_Success(t *testing.T) {
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
-	if len(resp.Answers) != 1 {
-		t.Errorf("expected 1 answer, got %d", len(resp.Answers))
-	}
-	if resp.Answers[0].Content != "test answer" {
-		t.Errorf("expected answer content 'test answer', got %v", resp.Answers[0].Content)
+	if resp.Content != "test answer" {
+		t.Errorf("expected answer content 'test answer', got %v", resp.Content)
 	}
 }
 
@@ -138,6 +135,9 @@ func TestUpdateChat_Success(t *testing.T) {
 	chatRepo.UpdateChatFunc = func(chat *entity.Chat) (*entity.Chat, error) {
 		return chat, nil
 	}
+	chatRepo.GetParticipantIDsByChatIDFunc = func(chatID string) ([]string, error) {
+		return []string{"1", "2"}, nil
+	}
 
 	participantSvc := NewMockParticipantRepository()
 	participantSvc.FindByIDFunc = func(id string) (*entity.Participant, error) {
@@ -148,8 +148,9 @@ func TestUpdateChat_Success(t *testing.T) {
 	}
 
 	service := &ChatCommandService{
-		chatRepo:                  chatRepo,
-		ParticipantRepo:           participantSvc,
+		chatRepo:        chatRepo,
+		ParticipantRepo: participantSvc,
+		EventPublisher:  nil,
 	}
 
 	reqTitle := "new titile"

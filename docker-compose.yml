@@ -10,12 +10,16 @@ services:
     depends_on:
       - api
       # - ws
-      # - broker
+      - broker
   broker:
     image: redis:7
     restart: always
     ports:
       - "6379:6379"
+    environment:
+      - REDIS_PORT=${BROKER_PORT}
+      - REDIS_PASSWORD=${BROKER_PASSWORD}
+      - REDIS_DB=${BROKER_DB}
     volumes:
       - broker_data:/data
   api:
@@ -27,20 +31,26 @@ services:
       - DB_NAME=${POSTGRES_DB}
       - DB_PORT=5432
       - NOSQL_HOST=nosql
-      - BROKER_HOST=broker
+      - BROKER_HOST=${BROKER_HOST}
+      - BROKER_PORT=${BROKER_PORT}
+      - BROKER_PASSWORD=${BROKER_PASSWORD}
+      - BROKER_DB=${BROKER_DB}
     ports:
       - "8000:8000"
     depends_on:
       - db
       # - nosql
-      # - broker
+      - broker
 
   ws:
     build: ./ws
     environment:
       - DB_HOST=db
       - NOSQL_HOST=nosql
-      - BROKER_HOST=broker
+      - BROKER_HOST=${BROKER_HOST}
+      - BROKER_PORT=${BROKER_PORT}
+      - BROKER_PASSWORD=${BROKER_PASSWORD}
+      - BROKER_DB=${BROKER_DB}
     ports:
       - "9000:9000"
     depends_on:
@@ -52,7 +62,10 @@ services:
     environment:
       - DB_HOST=db
       - NOSQL_HOST=nosql
-      - BROKER_HOST=broker
+      - BROKER_HOST=${BROKER_HOST}
+      - BROKER_PORT=${BROKER_PORT}
+      - BROKER_PASSWORD=${BROKER_PASSWORD}
+      - BROKER_DB=${BROKER_DB}
     ports:
       - "9100:9100"
     depends_on:

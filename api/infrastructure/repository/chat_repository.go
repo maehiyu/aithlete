@@ -278,16 +278,16 @@ func (r *ChatRepositoryImpl) UpdateChat(chat *entity.Chat) (*entity.Chat, error)
 	return chat, nil
 }
 
-func (r *ChatRepositoryImpl) AddQuestion(chatId string, question *entity.Question) (*entity.Chat, error) {
+func (r *ChatRepositoryImpl) AddQuestion(chatId string, question *entity.Question) error {
 	ctx := context.Background()
 	conn, err := r.conn.Acquire(ctx)
 	if err != nil {
-		return nil, err
+		return err
 	}
 	defer conn.Release()
 	tx, err := conn.Begin(ctx)
 	if err != nil {
-		return nil, err
+		return err
 	}
 	defer func() {
 		if err != nil {
@@ -301,7 +301,7 @@ func (r *ChatRepositoryImpl) AddQuestion(chatId string, question *entity.Questio
 		question.ID, chatId, question.ParticipantID, question.Content, question.CreatedAt,
 	)
 	if err != nil {
-		return nil, err
+		return err
 	}
 	// Insert attachments (if any)
 	for _, a := range question.Attachments {
@@ -310,26 +310,26 @@ func (r *ChatRepositoryImpl) AddQuestion(chatId string, question *entity.Questio
 			a.ID, a.Type, a.URL, a.Thumbnail, a.PoseID, a.Meta, a.OriginalID, a.QuestionID, a.AnswerID,
 		)
 		if err != nil {
-			return nil, err
+			return err
 		}
 	}
 	if err = tx.Commit(ctx); err != nil {
-		return nil, err
+		return err
 	}
-	// Return updated chat
-	return r.FindChatByID(chatId)
+
+	return err
 }
 
-func (r *ChatRepositoryImpl) AddAnswer(chatId string, answer *entity.Answer) (*entity.Chat, error) {
+func (r *ChatRepositoryImpl) AddAnswer(chatId string, answer *entity.Answer) error {
 	ctx := context.Background()
 	conn, err := r.conn.Acquire(ctx)
 	if err != nil {
-		return nil, err
+		return err
 	}
 	defer conn.Release()
 	tx, err := conn.Begin(ctx)
 	if err != nil {
-		return nil, err
+		return err
 	}
 	defer func() {
 		if err != nil {
@@ -343,7 +343,7 @@ func (r *ChatRepositoryImpl) AddAnswer(chatId string, answer *entity.Answer) (*e
 		answer.ID, chatId, answer.QuestionID, answer.ParticipantID, answer.Content, answer.CreatedAt,
 	)
 	if err != nil {
-		return nil, err
+		return err
 	}
 	// Insert attachments (if any)
 	for _, a := range answer.Attachments {
@@ -352,14 +352,24 @@ func (r *ChatRepositoryImpl) AddAnswer(chatId string, answer *entity.Answer) (*e
 			a.ID, a.Type, a.URL, a.Thumbnail, a.PoseID, a.Meta, a.OriginalID, a.QuestionID, a.AnswerID,
 		)
 		if err != nil {
-			return nil, err
+			return err
 		}
 	}
 	if err = tx.Commit(ctx); err != nil {
+		return err
+	}
+	return err
+}
+
+func (r *ChatRepositoryImpl) GetParticipantIDsByChatID(chatId string) ([]string, error) {
+	ctx := context.Background()
+	var participantIDs []string
+	row := r.conn.QueryRow(ctx, `SELECT participant_ids FROM chats WHERE id = $1`, chatId)
+	err := row.Scan(&participantIDs)
+	if err != nil {
 		return nil, err
 	}
-	// Return updated chat
-	return r.FindChatByID(chatId)
+	return participantIDs, nil
 }
 
 // domain/repository.ChatRepositoryインターフェースを満たす
