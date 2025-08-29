@@ -35,6 +35,8 @@ services:
       - BROKER_PORT=${BROKER_PORT}
       - BROKER_PASSWORD=${BROKER_PASSWORD}
       - BROKER_DB=${BROKER_DB}
+      - COGNITO_REGION=${COGNITO_REGION}
+      - COGNITO_USER_POOL_ID=${COGNITO_USER_POOL_ID}
     ports:
       - "8000:8000"
     depends_on:

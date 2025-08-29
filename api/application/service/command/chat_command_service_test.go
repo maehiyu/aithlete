@@ -36,7 +36,7 @@ func TestCreateChat_Success(t *testing.T) {
 		ParticipantIDs: []string{"1"},
 	}
 
-	resp, err := service.CreateChat(req)
+	resp, err := service.CreateChat(req, "1")
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}

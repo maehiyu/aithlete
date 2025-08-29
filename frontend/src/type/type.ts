@@ -1,11 +1,11 @@
 export type ChatCreateRequest = {
 	title?: string | null;
-	participantIds: string[];
+	opponentIds: string[];
 };
 export type ChatUpdateRequest = {
 	id: string;
 	title?: string | null;
-	participantIds?: string[];
+	opponentIds?: string[];
 };
 export type ParticipantCreateRequest = {
 	name: string;

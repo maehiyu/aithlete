@@ -28,3 +28,11 @@ func (s *ParticipantQueryService) GetParticipantByID(participantID string) (*dto
 	}
 	return participant, nil
 }
+
+func (s *ParticipantQueryService) GetCoachesBySport(sport string) ([]dto.ParticipantResponse, error) {
+	participants, err := s.ParticipantQuery.FindCoachesBySport(sport)
+	if err != nil {
+		return nil, err
+	}
+	return participants, nil
+}

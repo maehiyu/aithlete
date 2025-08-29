@@ -20,7 +20,8 @@ func NewChatCommandService(cr repository.ChatRepositoryInterface, pr repository.
 	return &ChatCommandService{chatRepo: cr, ParticipantRepo: pr, EventPublisher: ep}
 }
 
-func (s *ChatCommandService) CreateChat(chat dto.ChatCreateRequest) (*dto.ChatDetailResponse, error) {
+func (s *ChatCommandService) CreateChat(chat dto.ChatCreateRequest, userID string) (*dto.ChatDetailResponse, error) {
+	chat.ParticipantIDs = append(chat.ParticipantIDs, userID)
 	chatEntity := dto.ChatCreateRequestToEntity(chat, uuid.NewString(), time.Now())
 
 	savedChat, err := s.chatRepo.CreateChat(chatEntity)

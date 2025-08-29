@@ -4,7 +4,6 @@ import (
 	"api/application/dto"
 	"api/domain/repository"
 
-	"github.com/google/uuid"
 )
 
 type ParticipantCommandService struct {
@@ -15,8 +14,8 @@ func NewParticipantCommandService(pr repository.ParticipantRepositoryInterface) 
 	return &ParticipantCommandService{participantRepo: pr}
 }
 
-func (s *ParticipantCommandService) CreateParticipant(participant dto.ParticipantCreateRequest) (*dto.ParticipantResponse, error) {
-	participantEntity := dto.ParticipantCreateRequestToEntity(participant, uuid.NewString())
+func (s *ParticipantCommandService) CreateParticipant(participant dto.ParticipantCreateRequest, participantID string) (*dto.ParticipantResponse, error) {
+	participantEntity := dto.ParticipantCreateRequestToEntity(participant, participantID)
 
 	createdParticipant, err := s.participantRepo.Create(participantEntity)
 	if err != nil {

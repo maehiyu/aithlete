@@ -11,11 +11,12 @@ import (
 	"log"
 	"os"
 	"strconv"
-	
+
+	"api/infrastructure/broker"
+
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/jackc/pgx/v5/pgxpool"
-	"api/infrastructure/broker"
 	"github.com/redis/go-redis/v9"
 )
 
@@ -82,9 +83,13 @@ func main() {
 	r.PUT("/chats/:id", handler.HandleUpdateChat(chatCommandService))
 	r.GET("/chats", handler.HandleGetChats(chatQueryService))
 	r.POST("/chats", handler.HandleCreateChat(chatCommandService))
+
+	r.GET("/participants/me", handler.HandleGetCurrentUser(participantQueryService))
 	r.GET("/participants/:id", handler.HandleGetParticipant(participantQueryService))
-	r.POST("/participants", handler.HandleCreateParticipant(participantCommandService))
+	r.POST("/participants", handler.HandleCreateUser(participantCommandService))
 	r.PUT("/participants/:id", handler.HandleUpdateParticipant(participantCommandService))
+	
+	r.GET("/coaches", handler.HandleGetCoachesBySport(participantQueryService))
 
 	r.GET("/", func(c *gin.Context) {
 		c.String(200, "Hello, Go API!")

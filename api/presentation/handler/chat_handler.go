@@ -2,24 +2,27 @@ package handler
 
 import (
 	"net/http"
-	"strings"
 
-	"api/application/service/query"
-	"api/application/service/command"
 	"api/application/dto"
+	"api/application/service/command"
+	"api/application/service/query"
 
 	"github.com/gin-gonic/gin"
 )
 
 func HandleGetChats(chatQueryService *query.ChatQueryService) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		auth := c.GetHeader("Authorization")
-		userID := strings.TrimPrefix(auth, "Bearer ")
-		if userID == "" {
-			c.JSON(http.StatusUnauthorized, gin.H{"error": "invalid or missing JWT"})
+		userID, exists := c.Get("userId")
+		if !exists {
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "userId not found"})
 			return
 		}
-		chats, err := chatQueryService.GetChatsByUserID(userID)
+		uidStr, ok := userID.(string)
+		if !ok || uidStr == "" {
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "userId invalid"})
+			return
+		}
+		chats, err := chatQueryService.GetChatsByUserID(uidStr)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
@@ -43,11 +46,16 @@ func HandleGetChat(chatQueryService *query.ChatQueryService) gin.HandlerFunc {
 func HandleCreateChat(chatCommandService *command.ChatCommandService) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var req dto.ChatCreateRequest
+		userID, exists := c.Get("userId")
+		if !exists {
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "userId not found"})
+			return
+		}
 		if err := c.ShouldBindJSON(&req); err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
 		}
-		chat, err := chatCommandService.CreateChat(req)
+		chat, err := chatCommandService.CreateChat(req, userID.(string))
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return

@@ -50,6 +50,30 @@ func (q *ParticipantQuery) FindParticipantByID(participantID string) (*dto.Parti
 	return &p, nil
 }
 
+// FindCoachesBySport: 指定スポーツのコーチ一覧を取得
+func (q *ParticipantQuery) FindCoachesBySport(sport string) ([]dto.ParticipantResponse, error) {
+	ctx := context.Background()
+	// role='coach' かつ sports配列に該当スポーツが含まれる参加者を取得
+	rows, err := q.conn.Query(ctx, `SELECT id, name, email, role, icon_url, sports FROM participants WHERE role = 'coach' AND $1 = ANY(sports)`, sport)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var coaches []dto.ParticipantResponse
+	for rows.Next() {
+		var p dto.ParticipantResponse
+		var iconURL *string
+		if err := rows.Scan(&p.ID, &p.Name, &p.Email, &p.Role, &iconURL, &p.Sports); err == nil {
+			p.IconURL = iconURL
+			coaches = append(coaches, p)
+		}
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return coaches, nil
+}
+
 var _ interface {
 	query.ParticipantQueryInterface
 } = (*ParticipantQuery)(nil)

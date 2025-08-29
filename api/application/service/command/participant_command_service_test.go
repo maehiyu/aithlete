@@ -25,7 +25,7 @@ func TestCreateParticipant_Success(t *testing.T) {
 		IconURL: &iconURL,
 	}
 
-	resp, err := svc.CreateParticipant(createReq)
+	resp, err := svc.CreateParticipant(createReq, "test-participant-id")
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}

@@ -4,7 +4,7 @@ import toCamelCase from "../utils/toCamelCase";
 
 
 export async function fetchChats(): Promise<ChatSummaryResponse[]> {
-    const res = await apiFetch<any[]>("/chats");
+	const res = await apiFetch<any[]>("/chats");
     return toCamelCase<ChatSummaryResponse[]>(res);
 }
 
@@ -38,3 +38,18 @@ export async function deleteChat(chatId: string): Promise<void> {
 	});
 }
 
+export async function sendQuestion(chatId: string, data: { content: string; participantId: string }) {
+	const res = await apiFetch<any>(`/chats/${chatId}/questions`, {
+		method: "POST",
+		body: data,
+	});
+	return toCamelCase(res);
+}
+
+export async function sendAnswer(chatId: string, data: { content: string; participantId: string; questionId: string }) {
+	const res = await apiFetch<any>(`/chats/${chatId}/answers`, {
+		method: "POST",
+		body: data,
+	});
+	return toCamelCase(res);
+}

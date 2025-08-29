@@ -1,4 +1,7 @@
 
+
+import { getIdToken } from './authToken';
+
 const baseUrl = process.env.REACT_APP_API_BASE_URL;
 
 type ApiFetchOptions = {
@@ -8,15 +11,14 @@ type ApiFetchOptions = {
 
 export async function apiFetch<T>(endpoint: string, options: ApiFetchOptions = {}): Promise<T> {
     const { method = "GET", body } = options;
-    // デフォルトヘッダー
-    const defaultHeaders: Record<string, string> = {
-        "Authorization": "Bearer user1", // ダミー
-    };
-    // Content-Typeはbodyがある場合のみ追加
+    const token = await getIdToken();
+    const defaultHeaders: Record<string, string> = {};
+    if (token) {
+        defaultHeaders["Authorization"] = `Bearer ${token}`;
+    }
     if (body !== undefined) {
         defaultHeaders["Content-Type"] = "application/json";
     }
-    // ユーザー指定のheadersがあればマージ
     const fetchOptions: RequestInit = {
         method,
         headers: defaultHeaders,

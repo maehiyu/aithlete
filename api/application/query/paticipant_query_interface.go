@@ -5,4 +5,5 @@ import "api/application/dto"
 type ParticipantQueryInterface interface {
 	FindParticipantsByChatID(chatID string) ([]dto.ParticipantResponse, error)
 	FindParticipantByID(participantID string) (*dto.ParticipantResponse, error)
+	FindCoachesBySport(sport string) ([]dto.ParticipantResponse, error)
 }

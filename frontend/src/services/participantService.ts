@@ -1,19 +1,24 @@
 import type { ParticipantCreateRequest, ParticipantResponse, ParticipantUpdateRequest } from "../type/type";
 import { apiFetch } from "./apiClient";
 
-export async function fetchParticipant(participantId: string): Promise<ParticipantResponse> {
-  return apiFetch<ParticipantResponse>(`/api/participants/${participantId}`);
+
+export async function getCurrentUser(): Promise<ParticipantResponse> {
+  return apiFetch<ParticipantResponse>("/participants/me");
 }
 
-export async function createParticipant(data: ParticipantCreateRequest): Promise<ParticipantResponse> {
-  return apiFetch<ParticipantResponse>("/api/participants", {
+export async function fetchParticipant(participantId: string): Promise<ParticipantResponse> {
+  return apiFetch<ParticipantResponse>(`/participants/${participantId}`);
+}
+
+export async function createUser(data: ParticipantCreateRequest): Promise<ParticipantResponse> {
+  return apiFetch<ParticipantResponse>("/participants", {
     method: "POST",
     body: data,
   });
 }
 
-export async function updateParticipant(participantId: string, data: ParticipantUpdateRequest): Promise<ParticipantResponse> {
-  return apiFetch<ParticipantResponse>(`/api/participants/${participantId}`, {
+export async function updateUser(participantId: string, data: ParticipantUpdateRequest): Promise<ParticipantResponse> {
+  return apiFetch<ParticipantResponse>(`/participants/${participantId}`, {
     method: "PUT",
     body: data,
   });
