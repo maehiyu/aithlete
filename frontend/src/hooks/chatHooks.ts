@@ -5,6 +5,7 @@ import {
   createChat,
   updateChat,
   deleteChat,
+  sendQuestion,
   sendAnswer
 } from "../services/chatService";
 import type { ChatDetailResponse, ChatSummaryResponse, ChatUpdateRequest, ChatCreateRequest } from "../type/type";
@@ -18,7 +19,6 @@ export function useChats() {
     refetchOnWindowFocus: false,
   });
 }
-
 
 export function useChat(chatId: string) {
   return useQuery<ChatDetailResponse>({
@@ -35,9 +35,25 @@ export function useCreateChat() {
   return useMutation<
     ChatDetailResponse,
     Error,
-    string[] // opponentIdsのみを引数に
+    string[]
   >({
-    mutationFn: (opponentIds) => createChat({ opponentIds }),
+    mutationFn: (opponentIds) => createChat({ participantIds: opponentIds }),
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ["chats"] });
+      queryClient.setQueryData(["chat", data.id], data);
+    },
+  });
+}
+
+export function useCreateChatWithQuestion() {
+  const queryClient = useQueryClient();
+  return useMutation<
+    ChatDetailResponse,
+    Error,
+    { opponentIds: string[]; questions: string[] }
+  >({
+    mutationFn: ({ opponentIds, questions}) =>
+      createChat({ participantIds: opponentIds, questions: questions }),
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ["chats"] });
       queryClient.setQueryData(["chat", data.id], data);
@@ -86,6 +102,55 @@ export function useSendAnswer(chatId: string) {
           answers: [...(old.answers || []), answer],
         };
       });
+    },
+  });
+}
+
+export function useSendQuestion(chatId: string) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (data: { content: string; participantId: string }) => sendQuestion(chatId, data),
+    onSuccess: (question) => {
+      queryClient.setQueryData(["chat", chatId], (old: any) => {
+        if (!old) return old;
+        return {
+          ...old,
+          questions: [...(old.questions || []), question],
+        };
+      });
+    },
+  });
+}
+
+export function useSendMessage(chatId: string, role: string, questionId?: string) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (data: { content: string; participantId: string, questionId?: string }) => {
+      if (role === "coach") {
+        if (!questionId) throw new Error("questionId is required for answer");
+        return sendAnswer(chatId, { content: data.content, participantId: data.participantId, questionId });
+      } else {
+        return sendQuestion(chatId, { content: data.content, participantId: data.participantId });
+      }
+    },
+    onSuccess: (result, variables) => {
+      if (role === "coach") {
+        queryClient.setQueryData(["chat", chatId], (old: any) => {
+          if (!old) return old;
+          return {
+            ...old,
+            answers: [...(old.answers || []), result],
+          };
+        });
+      } else {
+        queryClient.setQueryData(["chat", chatId], (old: any) => {
+          if (!old) return old;
+          return {
+            ...old,
+            questions: [...(old.questions || []), result],
+          };
+        });
+      }
     },
   });
 }

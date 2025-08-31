@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"database/sql"
 	"net/http"
 
 	"api/application/dto"
@@ -23,8 +24,12 @@ func HandleGetChats(chatQueryService *query.ChatQueryService) gin.HandlerFunc {
 			return
 		}
 		chats, err := chatQueryService.GetChatsByUserID(uidStr)
-		if err != nil {
+		if err != nil && err != sql.ErrNoRows {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+		if err == sql.ErrNoRows {
+			c.JSON(http.StatusOK, []interface{}{})
 			return
 		}
 		c.JSON(http.StatusOK, chats)

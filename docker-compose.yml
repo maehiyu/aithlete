@@ -75,6 +75,22 @@ services:
       - nosql
       - broker
 
+  rag:
+    build: ./rag
+    environment:
+      - DB_HOST=db
+      - NOSQL_HOST=nosql
+      - BROKER_HOST=${BROKER_HOST}
+      - BROKER_PORT=${BROKER_PORT}
+      - BROKER_PASSWORD=${BROKER_PASSWORD}
+      - BROKER_DB=${BROKER_DB}
+    ports:
+      - "9200:9200"
+    depends_on:
+      - db
+      - nosql
+      - broker
+
   pose_estimator:
     build: ./pose-estimator
     ports:

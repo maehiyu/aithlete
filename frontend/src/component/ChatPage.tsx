@@ -1,7 +1,7 @@
-import { useCoachesBySport } from '../hooks/useCoachesBySport';
-import { useCurrentUser } from '../hooks/useParticipant';
+import { useCoachesBySport } from '../hooks/ParticipantHooks';
+import { useCurrentUser } from '../hooks/ParticipantHooks';
 import { Avatar } from '@mui/material';
-import { useCreateChat } from '../hooks/useChat';
+import { useCreateChat } from '../hooks/chatHooks';
 import { useNavigate } from 'react-router-dom';
 import { useQueryClient } from '@tanstack/react-query';
 

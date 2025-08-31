@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useCreateUser } from '../hooks/useParticipant';
+import { useCreateUser } from '../hooks/ParticipantHooks';
 import { TextField, Button, Box, Typography, MenuItem } from '@mui/material';
 
 const sportsList = ['サッカー', 'バスケ', '野球', 'テニス', 'バレー']; // 必要に応じて拡張

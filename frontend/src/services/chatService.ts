@@ -1,6 +1,7 @@
 import type { ChatCreateRequest, ChatDetailResponse, ChatSummaryResponse, ChatUpdateRequest } from "../type/type";
 import { apiFetch } from "./apiClient";
 import toCamelCase from "../utils/toCamelCase";
+import toSnakeCase from "../utils/toSnakeCase";
 
 
 export async function fetchChats(): Promise<ChatSummaryResponse[]> {
@@ -15,19 +16,19 @@ export async function fetchChat(chatId: string): Promise<ChatDetailResponse> {
 }
 
 
+
 export async function createChat(data: ChatCreateRequest): Promise<ChatDetailResponse> {
 	const res = await apiFetch<any>("/chats", {
 		method: "POST",
-		body: data,
+		body: toSnakeCase(data),
 	});
 	return toCamelCase<ChatDetailResponse>(res);
 }
 
-
 export async function updateChat(chatId: string, data: ChatUpdateRequest): Promise<ChatDetailResponse> {
 	const res = await apiFetch<any>(`/chats/${chatId}`, {
 		method: "PUT",
-		body: data,
+		body: toSnakeCase(data),
 	});
 	return toCamelCase<ChatDetailResponse>(res);
 }
@@ -41,15 +42,16 @@ export async function deleteChat(chatId: string): Promise<void> {
 export async function sendQuestion(chatId: string, data: { content: string; participantId: string }) {
 	const res = await apiFetch<any>(`/chats/${chatId}/questions`, {
 		method: "POST",
-		body: data,
+		body: toSnakeCase(data),
 	});
 	return toCamelCase(res);
 }
 
+
 export async function sendAnswer(chatId: string, data: { content: string; participantId: string; questionId: string }) {
 	const res = await apiFetch<any>(`/chats/${chatId}/answers`, {
 		method: "POST",
-		body: data,
+		body: toSnakeCase(data),
 	});
 	return toCamelCase(res);
 }

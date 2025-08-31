@@ -6,6 +6,7 @@ import {
   getCurrentUser
 } from "../services/participantService";
 import type { ParticipantResponse, ParticipantCreateRequest, ParticipantUpdateRequest } from "../type/type";
+import { fetchCoachesBySport } from "../services/coachService";
 
 export function useCurrentUser() {
   return useQuery<ParticipantResponse>({
@@ -25,6 +26,15 @@ export function useParticipant(participantId: string) {
     refetchOnWindowFocus: false,
   });
 }
+
+export function useCoachesBySport(sport: string) {
+  return useQuery<ParticipantResponse[]>({
+    queryKey: ["coaches", sport],
+    queryFn: () => fetchCoachesBySport(sport),
+    enabled: !!sport,
+  });
+}
+
 
 export function useCreateUser() {
   const queryClient = useQueryClient();

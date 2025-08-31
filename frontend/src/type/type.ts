@@ -1,6 +1,7 @@
 export type ChatCreateRequest = {
 	title?: string | null;
-	opponentIds: string[];
+	participantIds: string[];
+	questions?: string[];
 };
 export type ChatUpdateRequest = {
 	id: string;

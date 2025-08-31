@@ -1,5 +1,5 @@
 import React from "react";
-import { useChats } from "../hooks/useChat";
+import { useChats } from "../hooks/chatHooks";
 import List from "@mui/material/List";
 import ListItem from "@mui/material/ListItem";
 import ListItemText from "@mui/material/ListItemText";
