@@ -89,13 +89,14 @@ func HandleUpdateChat(chatCommandService *command.ChatCommandService) gin.Handle
 func HandleSendQuestion(chatCommandService *command.ChatCommandService) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		chatID := c.Param("id")
+		token := c.GetHeader("Authorization")
 		var req dto.QuestionCreateRequest
 		if err := c.ShouldBindJSON(&req); err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
 		}
 
-		question, err := chatCommandService.SendQuestion(chatID, req)
+		question, err := chatCommandService.SendQuestion(chatID, req, token)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return

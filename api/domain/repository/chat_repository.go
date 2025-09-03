@@ -11,4 +11,5 @@ type ChatRepositoryInterface interface {
 	AddQuestion(chatId string, question *entity.Question) error
 	AddAnswer(chatId string, answer *entity.Answer) error
 	GetParticipantIDsByChatID(chatId string) ([]string, error)
+	GetQuestionContent(questionID string) (string, error)
 }

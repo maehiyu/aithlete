@@ -54,7 +54,7 @@ func HandleGetParticipant(participantQueryService *query.ParticipantQueryService
 	}
 }
 
-func HandleCreateUser(participantCommandService *command.ParticipantCommandService) gin.HandlerFunc {
+func HandleCreateParticipant(participantCommandService *command.ParticipantCommandService) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var req dto.ParticipantCreateRequest
 		userID, exists := c.Get("userId")

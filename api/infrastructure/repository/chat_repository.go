@@ -372,5 +372,16 @@ func (r *ChatRepositoryImpl) GetParticipantIDsByChatID(chatId string) ([]string,
 	return participantIDs, nil
 }
 
+func (r *ChatRepositoryImpl) GetQuestionContent(questionID string) (string, error) {
+	ctx := context.Background()
+	var content string
+	row := r.conn.QueryRow(ctx, `SELECT content FROM questions WHERE id = $1`, questionID)
+	err := row.Scan(&content)
+	if err != nil {
+		return "", err
+	}
+	return content, nil
+}
+
 // domain/repository.ChatRepositoryインターフェースを満たす
 var _ repository.ChatRepositoryInterface = (*ChatRepositoryImpl)(nil)

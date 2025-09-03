@@ -4,6 +4,7 @@ import (
 	"api/application/service/command"
 	appquery "api/application/service/query"
 	infraquery "api/infrastructure/query"
+	"api/infrastructure/rag"
 	"api/infrastructure/repository"
 	"api/presentation/handler"
 	"api/presentation/middleware"
@@ -74,7 +75,14 @@ func main() {
 	chatQueryService := appquery.NewChatQueryService(chatQuery)
 	participantQueryService := appquery.NewParticipantQueryService(participantQuery)
 
-	chatCommandService := command.NewChatCommandService(chatRepository, participantRepository, eventPublisher)
+	vectorStoreRepo := repository.NewVectorStoreRepository(
+		"http://weaviate:8080",        // Weaviate endpoint
+		"QAPair",                      // Class名
+		"http://embedding:8001/embed", // Embedding API endpoint
+	)
+
+	ragClient := rag.NewRAGClient()
+	chatCommandService := command.NewChatCommandService(chatRepository, participantRepository, eventPublisher, vectorStoreRepo, ragClient)
 	participantCommandService := command.NewParticipantCommandService(participantRepository)
 
 	r.POST("/chats/:id/questions", handler.HandleSendQuestion(chatCommandService))
@@ -86,9 +94,9 @@ func main() {
 
 	r.GET("/participants/me", handler.HandleGetCurrentUser(participantQueryService))
 	r.GET("/participants/:id", handler.HandleGetParticipant(participantQueryService))
-	r.POST("/participants", handler.HandleCreateUser(participantCommandService))
+	r.POST("/participants", handler.HandleCreateParticipant(participantCommandService))
 	r.PUT("/participants/:id", handler.HandleUpdateParticipant(participantCommandService))
-	
+
 	r.GET("/coaches", handler.HandleGetCoachesBySport(participantQueryService))
 
 	r.GET("/", func(c *gin.Context) {

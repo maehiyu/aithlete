@@ -52,7 +52,7 @@ export type AttachmentResponse = {
 	url: string;
 	pose?: PoseDataResponse | null;
 };
-export type AnswerDetailResponse = {
+export type AnswerResponse = {
 	id: string;
 	questionId: string;
 	participantId: string;
@@ -60,7 +60,7 @@ export type AnswerDetailResponse = {
 	attachments: AttachmentResponse[];
 	createdAt: string;
 };
-export type QuestionDetailResponse = {
+export type QuestionResponse = {
 	id: string;
 	participantId: string;
 	content: string;
@@ -71,8 +71,8 @@ export type ChatDetailResponse = {
 	id: string;
 	title?: string | null;
 	participants: ParticipantResponse[];
-	questions: QuestionDetailResponse[];
-	answers: AnswerDetailResponse[];
+	questions: QuestionResponse[];
+	answers: AnswerResponse[];
 	startedAt: string;
 	lastActiveAt: string;
 };

@@ -3,7 +3,8 @@ import {
   fetchParticipant,
   createUser,
   updateUser,
-  getCurrentUser
+  getCurrentUser,
+  createAICoach
 } from "../services/participantService";
 import type { ParticipantResponse, ParticipantCreateRequest, ParticipantUpdateRequest } from "../type/type";
 import { fetchCoachesBySport } from "../services/coachService";
@@ -55,5 +56,11 @@ export function useUpdateUser() {
       queryClient.invalidateQueries({ queryKey: ["user", variables.participantId] });
       queryClient.invalidateQueries({ queryKey: ["users"] });
     },
+  });
+}
+
+export function useCreateAICoach() {
+  return useMutation<ParticipantResponse, Error, string[]>({
+    mutationFn: createAICoach,
   });
 }

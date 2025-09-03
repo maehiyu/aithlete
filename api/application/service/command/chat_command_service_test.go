@@ -3,9 +3,20 @@ package command
 import (
 	"api/application/dto"
 	"api/domain/entity"
-
 	"testing"
 )
+
+// RagClientのモック
+type MockRagClient struct {
+	CallRAGServerFunc func(chatID, questionContent, aiID, questionID, token string) (string, error)
+}
+
+func (m *MockRagClient) CallRAGServer(chatID, questionContent, aiID, questionID, token string) (string, error) {
+	if m.CallRAGServerFunc != nil {
+		return m.CallRAGServerFunc(chatID, questionContent, aiID, questionID, token)
+	}
+	return "", nil
+}
 
 func TestCreateChat_Success(t *testing.T) {
 	chatRepo := NewMockChatRepository()
@@ -28,6 +39,7 @@ func TestCreateChat_Success(t *testing.T) {
 		chatRepo:        chatRepo,
 		ParticipantRepo: participantSvc,
 		EventPublisher:  nil,
+		RagClient:       &MockRagClient{},
 	}
 
 	reqTitle := "test chat"
@@ -72,6 +84,7 @@ func TestSendQuestion_Success(t *testing.T) {
 		chatRepo:        chatRepo,
 		ParticipantRepo: participantSvc,
 		EventPublisher:  nil,
+		RagClient:       &MockRagClient{},
 	}
 
 	req := dto.QuestionCreateRequest{
@@ -79,7 +92,7 @@ func TestSendQuestion_Success(t *testing.T) {
 		Content:       "test question",
 	}
 
-	resp, err := service.SendQuestion("1", req)
+	resp, err := service.SendQuestion("1", req, "test-token")
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
@@ -109,6 +122,7 @@ func TestSendAnswer_Success(t *testing.T) {
 		chatRepo:        chatRepo,
 		ParticipantRepo: participantSvc,
 		EventPublisher:  nil,
+		RagClient:       &MockRagClient{},
 	}
 
 	req := dto.AnswerCreateRequest{
@@ -151,6 +165,7 @@ func TestUpdateChat_Success(t *testing.T) {
 		chatRepo:        chatRepo,
 		ParticipantRepo: participantSvc,
 		EventPublisher:  nil,
+		RagClient:       &MockRagClient{},
 	}
 
 	reqTitle := "new titile"

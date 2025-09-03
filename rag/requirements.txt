@@ -1,5 +1,15 @@
 fastapi
 uvicorn
 langchain
-openai
+langchain_community
 pydantic
+transformers
+torch
+protobuf
+tiktoken
+blobfile
+sentencepiece
+accelerate
+safetensors
+numpy
+typing-extensions

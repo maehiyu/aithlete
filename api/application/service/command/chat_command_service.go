@@ -3,6 +3,7 @@ package command
 import (
 	"api/application/broker"
 	"api/application/dto"
+	"api/application/rag"
 	"api/domain/repository"
 	"context"
 	"time"
@@ -14,10 +15,12 @@ type ChatCommandService struct {
 	chatRepo        repository.ChatRepositoryInterface
 	ParticipantRepo repository.ParticipantRepositoryInterface
 	EventPublisher  broker.ChatEventPublisher
+	VectorStoreRepo repository.VectorStoreRepositoryInterface
+	RagClient       rag.RagClient
 }
 
-func NewChatCommandService(cr repository.ChatRepositoryInterface, pr repository.ParticipantRepositoryInterface, ep broker.ChatEventPublisher) *ChatCommandService {
-	return &ChatCommandService{chatRepo: cr, ParticipantRepo: pr, EventPublisher: ep}
+func NewChatCommandService(cr repository.ChatRepositoryInterface, pr repository.ParticipantRepositoryInterface, ep broker.ChatEventPublisher, vsr repository.VectorStoreRepositoryInterface, ragClient rag.RagClient) *ChatCommandService {
+	return &ChatCommandService{chatRepo: cr, ParticipantRepo: pr, EventPublisher: ep, VectorStoreRepo: vsr, RagClient: ragClient}
 }
 
 func (s *ChatCommandService) CreateChat(chat dto.ChatCreateRequest, userID string) (*dto.ChatDetailResponse, error) {
@@ -72,10 +75,25 @@ func (s *ChatCommandService) UpdateChat(chatID string, chat dto.ChatUpdateReques
 	return &chatDetail, nil
 }
 
-func (s *ChatCommandService) SendQuestion(chatID string, req dto.QuestionCreateRequest) (*dto.QuestionResponse, error) {
+func (s *ChatCommandService) SendQuestion(chatID string, req dto.QuestionCreateRequest, token string) (*dto.QuestionResponse, error) {
 	questionEntity := dto.QuestionCreateRequestToEntity(req, uuid.NewString(), chatID, time.Now())
 
-	err := s.chatRepo.AddQuestion(chatID, questionEntity)
+	participants, err := s.getOtherParticipants(chatID, req.ParticipantID)
+	if err == nil {
+		for _, p := range participants {
+			if p.Role == "ai_coach" {
+				aiID := p.ID
+				questionContent := req.Content
+				questionID := questionEntity.ID
+				go func(aiID, questionContent, questionID, token string) {
+					_, _ = s.RagClient.CallRAGServer(chatID, questionContent, aiID, questionID, token)
+
+				}(aiID, questionContent, questionID, token)
+			}
+		}
+	}
+
+	err = s.chatRepo.AddQuestion(chatID, questionEntity)
 	if err != nil {
 		return nil, err
 	}
@@ -112,6 +130,23 @@ func (s *ChatCommandService) SendAnswer(chatID string, req dto.AnswerCreateReque
 	}
 
 	answerResponse := dto.AnswerEntityToResponse(answerEntity)
+	questionContent, err := s.chatRepo.GetQuestionContent(req.QuestionID)
+	if err != nil {
+		return nil, err
+	}
+
+	isAI := false
+	if s.ParticipantRepo != nil {
+		participant, err := s.ParticipantRepo.FindByID(req.ParticipantID)
+		if err == nil && participant != nil {
+			if participant.Role == "ai_coach" {
+				isAI = true
+			}
+		}
+	}
+	if s.VectorStoreRepo != nil && !isAI {
+		_ = s.VectorStoreRepo.SaveQAPair(chatID, questionContent, answerEntity.Content, answerEntity.ID)
+	}
 
 	filtered, err := s.getOtherParticipantIDs(chatID, req.ParticipantID)
 	if err != nil {
@@ -146,4 +181,24 @@ func (s *ChatCommandService) getOtherParticipantIDs(chatID, excludeID string) ([
 		}
 	}
 	return filtered, nil
+}
+
+func (s *ChatCommandService) getOtherParticipants(chatID, excludeID string) ([]*dto.ParticipantResponse, error) {
+	ids, err := s.chatRepo.GetParticipantIDsByChatID(chatID)
+	if err != nil {
+		return nil, err
+	}
+	participants := make([]*dto.ParticipantResponse, 0, len(ids))
+	for _, id := range ids {
+		if id == excludeID {
+			continue
+		}
+		p, err := s.ParticipantRepo.FindByID(id)
+		if err != nil || p == nil {
+			continue
+		}
+		resp := dto.ParticipantEntityToResponse(p)
+		participants = append(participants, &resp)
+	}
+	return participants, nil
 }

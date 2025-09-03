@@ -9,6 +9,7 @@ type MockChatRepository struct {
 	AddAnswerFunc    func(chatId string, answer *entity.Answer) error
 	AddQuestionFunc  func(chatId string, question *entity.Question) error
 	GetParticipantIDsByChatIDFunc func(chatID string) ([]string, error)
+	GetQuestionContentFunc func(questionID string) (string, error)
 }
 
 func NewMockChatRepository() *MockChatRepository {
@@ -19,6 +20,7 @@ func NewMockChatRepository() *MockChatRepository {
 		AddAnswerFunc:    func(chatId string, answer *entity.Answer) error { panic("not used") },
 		AddQuestionFunc:  func(chatId string, question *entity.Question) error { panic("not used") },
 		GetParticipantIDsByChatIDFunc: func(chatID string) ([]string, error) { return []string{"1", "2"}, nil },
+		GetQuestionContentFunc: func(questionID string) (string, error) { return "question content", nil },
 	}
 }
 
@@ -42,4 +44,10 @@ func (m *MockChatRepository) GetParticipantIDsByChatID(chatID string) ([]string,
 		return m.GetParticipantIDsByChatIDFunc(chatID)
 	}
 	return []string{"1", "2"}, nil
+}
+func (m *MockChatRepository) GetQuestionContent(questionID string) (string, error) {
+	if m.GetQuestionContentFunc != nil {
+		return m.GetQuestionContentFunc(questionID)
+	}
+	return "question content", nil
 }

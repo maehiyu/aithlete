@@ -2,8 +2,10 @@ package command
 
 import (
 	"api/application/dto"
+	"api/domain/entity"
 	"api/domain/repository"
 
+	"github.com/google/uuid"
 )
 
 type ParticipantCommandService struct {
@@ -14,8 +16,13 @@ func NewParticipantCommandService(pr repository.ParticipantRepositoryInterface) 
 	return &ParticipantCommandService{participantRepo: pr}
 }
 
-func (s *ParticipantCommandService) CreateParticipant(participant dto.ParticipantCreateRequest, participantID string) (*dto.ParticipantResponse, error) {
-	participantEntity := dto.ParticipantCreateRequestToEntity(participant, participantID)
+func (s *ParticipantCommandService) CreateParticipant(participant dto.ParticipantCreateRequest, userID string) (*dto.ParticipantResponse, error) {
+	var participantEntity *entity.Participant
+	if participant.Role == "ai_coach" {
+		participantEntity = dto.ParticipantCreateRequestToEntity(participant, uuid.New().String())
+	} else {
+		participantEntity = dto.ParticipantCreateRequestToEntity(participant, userID)
+	}
 
 	createdParticipant, err := s.participantRepo.Create(participantEntity)
 	if err != nil {

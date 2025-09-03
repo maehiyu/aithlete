@@ -1,17 +1,20 @@
-import { useCoachesBySport } from '../hooks/ParticipantHooks';
+import { useCoachesBySport, useCreateAICoach } from '../hooks/ParticipantHooks';
 import { useCurrentUser } from '../hooks/ParticipantHooks';
 import { Avatar } from '@mui/material';
 import { useCreateChat } from '../hooks/chatHooks';
 import { useNavigate } from 'react-router-dom';
 import { useQueryClient } from '@tanstack/react-query';
+import { useSendHandler } from '../context/SendHandlerContext';
+import { useEffect } from 'react';
 
 export function ChatPage() {
     const { data: currentUser, isLoading: isUserLoading, error: userError } = useCurrentUser();
-    const firstSport = currentUser?.sports?.[0] || '';
-    const { data: coaches, isLoading: isCoachesLoading, error: coachesError } = useCoachesBySport(firstSport);
+    const { data: coaches, isLoading: isCoachesLoading, error: coachesError } = useCoachesBySport(currentUser?.sports?.[0] || '');
     const navigate = useNavigate();
+    const createAICoachMutation = useCreateAICoach();
     const createChatMutation = useCreateChat();
     const queryClient = useQueryClient();
+    const { setHandler } = useSendHandler();
 
     const handleCreateChat = (coachId: string) => {
         if (!coachId) return;
@@ -26,13 +29,30 @@ export function ChatPage() {
         );
     };
 
+
+    const handleCreateAIChat = async (message: string) => {
+        if (!currentUser) return;
+        try {
+            const aiCoach = await createAICoachMutation.mutateAsync(currentUser.sports);
+            const chat = await createChatMutation.mutateAsync([aiCoach.id]);
+
+            navigate(`/chats/${chat.id}`, { state: { initialMessage: message } });
+        } catch (e) {
+
+        }
+    };
+    
+    useEffect(() => {
+        setHandler(() =>(input: string) => handleCreateAIChat(input));
+    }, [setHandler, currentUser]);
+
     if (isUserLoading) return <div>Loading...</div>;
     if (userError) return <div style={{ color: 'red' }}>Error: {userError instanceof Error ? userError.message : String(userError)}</div>;
-    if (!currentUser || !firstSport) return <div>スポーツ情報がありません</div>;
+    if (!currentUser) return <div>スポーツ情報がありません</div>;
 
     return (
         <div style={{ maxWidth: 700, margin: '0 auto'}}>
-            <h2>コーチ一覧（{firstSport}）</h2>
+            <h2>コーチ一覧（{currentUser?.sports?.[0] || ''}）</h2>
             {isCoachesLoading && <div>Loading coaches...</div>}
             {coachesError && <div style={{ color: 'red' }}>Error: {coachesError instanceof Error ? coachesError.message : String(coachesError)}</div>}
             {coaches && coaches.length > 0 ? (

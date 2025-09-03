@@ -29,9 +29,19 @@ export function ChatList() {
               <Avatar src={chat.opponent.iconUrl} alt={chat.opponent.name} />
             </ListItemAvatar>
             <ListItemText
-              primary={<Typography variant="h6">{chat.title ?? "(No Title)"}</Typography>}
+              primary={<Typography variant="h6">{chat.opponent.name ?? "(No Title)"}</Typography>}
               secondary={
-                <Typography variant="body2" color="text.secondary">
+                <Typography
+                  variant="body2"
+                  color="text.secondary"
+                  noWrap
+                  sx={{
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
+                    whiteSpace: 'nowrap',
+                    display: 'block',
+                  }}
+                >
                   {chat.latestQa ?? "No recent activity"}
                 </Typography>
               }

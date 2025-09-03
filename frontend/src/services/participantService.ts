@@ -23,3 +23,16 @@ export async function updateUser(participantId: string, data: ParticipantUpdateR
     body: data,
   });
 }
+
+export async function createAICoach(sports: string[]): Promise<ParticipantResponse> {
+  const req: ParticipantCreateRequest = {
+    name: 'AIコーチ',
+    role: 'ai_coach',
+    sports,
+    email: '',
+  };
+  return apiFetch<ParticipantResponse>("/participants", {
+    method: "POST",
+    body: req,
+  });
+}

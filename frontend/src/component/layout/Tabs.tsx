@@ -12,6 +12,7 @@ import SendIcon from '@mui/icons-material/Send';
 export default function Tabs() {
     const [isInputMode, setIsInputMode] = useState(false);
     const [input, setInput] = useState("");
+    const [isComposing, setIsComposing] = useState(false);
     const location = useLocation();
     const { handler } = useSendHandler();
 
@@ -54,22 +55,42 @@ export default function Tabs() {
                                     value={input}
                                     onChange={e => setInput(e.target.value)}
                                     variant="standard"
+                                    multiline
+                                    minRows={1}
+                                    maxRows={4}
                                     InputProps={{
                                         disableUnderline: true,
+                                        sx: {
+                                            p: 0,
+                                            alignItems: 'center',
+                                        },
                                         inputProps: {
                                             sx: {
-                                                height: '40px',
                                                 display: 'flex',
                                                 alignItems: 'center',
                                                 py: 0,
+                                                resize: 'none',
                                             }
                                         }
                                     }}
-                                    sx={{ width: '100%', flex: 1, minWidth: 0, transition: 'width 0.3s', border: 'none', height: '40px', textAlign: 'center' }}
+                                    sx={{ width: '100%', flex: 1, minWidth: 0, transition: 'width 0.3s', border: 'none', textAlign: 'center' }}
+                                    onCompositionStart={() => setIsComposing(true)}
+                                    onCompositionEnd={() => setIsComposing(false)}
+                                    onKeyDown={e => {
+                                        if (e.key === 'Enter' && !e.shiftKey && !isComposing) {
+                                            e.preventDefault();
+                                            if (typeof handler === 'function' && input.trim()) {
+                                                handler(input);
+                                                setInput("");
+                                            }
+                                        }
+                                    }}
                                 />
                                 <IconButton onClick={() => {
-                                    handler(input);
-                                    setInput("");
+                                    if (typeof handler === 'function') {
+                                        handler(input);
+                                        setInput("");
+                                    }
                                 }} disabled={!input.trim()}>
                                     <SendIcon />
                                 </IconButton>
