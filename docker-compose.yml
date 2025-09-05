@@ -73,6 +73,10 @@ services:
     depends_on:
       - db
       - broker
+    deploy:
+      resources:
+        limits:
+          memory: 2G
 
   db:
     image: postgres:15

@@ -73,6 +73,7 @@ export type ChatDetailResponse = {
 	participants: ParticipantResponse[];
 	questions: QuestionResponse[];
 	answers: AnswerResponse[];
+	streamMessages?: AnswerResponse;
 	startedAt: string;
 	lastActiveAt: string;
 };

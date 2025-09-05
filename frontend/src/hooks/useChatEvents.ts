@@ -35,6 +35,7 @@ export function useChatEvents(chatId: string) {
             return {
               ...old,
               answers: [...(old.answers || []), payload],
+              streamMessages: undefined,
             };
           }
           if (data.type === "question") {
@@ -42,6 +43,14 @@ export function useChatEvents(chatId: string) {
             return {
               ...old,
               questions: [...(old.questions || []), payload],
+              streamMessages: undefined,
+            };
+          }
+          if (data.type === "stream") {
+            const payload = toCamelCase(data.payload);
+            return {
+              ...old,
+              streamMessages: payload,
             };
           }
           return old;
@@ -53,6 +62,5 @@ export function useChatEvents(chatId: string) {
       isMounted = false;
       if (ws) ws.close();
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [chatId]);
 }

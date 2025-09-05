@@ -6,8 +6,33 @@ import (
 	"testing"
 )
 
+type MockParticipantRepository struct {
+	CreateFunc   func(p *entity.Participant) (*entity.Participant, error)
+	FindByIDFunc func(id string) (*entity.Participant, error)
+	UpdateFunc   func(p *entity.Participant) (*entity.Participant, error)
+}
+
+func (m *MockParticipantRepository) Create(p *entity.Participant) (*entity.Participant, error) {
+	if m.CreateFunc != nil {
+		return m.CreateFunc(p)
+	}
+	return p, nil
+}
+func (m *MockParticipantRepository) FindByID(id string) (*entity.Participant, error) {
+	if m.FindByIDFunc != nil {
+		return m.FindByIDFunc(id)
+	}
+	return &entity.Participant{ID: id}, nil
+}
+func (m *MockParticipantRepository) Update(p *entity.Participant) (*entity.Participant, error) {
+	if m.UpdateFunc != nil {
+		return m.UpdateFunc(p)
+	}
+	return p, nil
+}
+
 func TestCreateParticipant_Success(t *testing.T) {
-	mockRepo := NewMockParticipantRepository()
+	mockRepo := &MockParticipantRepository{}
 	mockRepo.CreateFunc = func(p *entity.Participant) (*entity.Participant, error) {
 		return p, nil
 	}
@@ -41,7 +66,7 @@ func TestCreateParticipant_Success(t *testing.T) {
 }
 
 func TestUpdateParticipant_Success(t *testing.T) {
-	mockRepo := NewMockParticipantRepository()
+	mockRepo := &MockParticipantRepository{}
 	// 既存の参加者
 	before := &entity.Participant{
 		ID:      "1",
@@ -71,7 +96,7 @@ func TestUpdateParticipant_Success(t *testing.T) {
 		IconURL: &newIcon,
 	}
 
-	resp, err := svc.UpdateParticipant("1",updateReq)
+	resp, err := svc.UpdateParticipant("1", updateReq)
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}

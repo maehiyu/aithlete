@@ -144,3 +144,26 @@ func AnswerEntityToResponse(a *entity.Answer) AnswerResponse {
 		Attachments:   []AttachmentResponse{}, // Add mapping if needed
 	}
 }
+
+func QuestionResponseToEntity(resp QuestionResponse) *entity.Question {
+	return &entity.Question{
+		ID:            resp.ID,
+		ChatID:        resp.ChatID,
+		ParticipantID: resp.ParticipantID,
+		Content:       resp.Content,
+		CreatedAt:     resp.CreatedAt,
+		// Attachments:   ... // 必要なら変換追加
+	}
+}
+
+func AnswerResponseToEntity(resp AnswerResponse) *entity.Answer {
+	return &entity.Answer{
+		ID:            resp.ID,
+		ChatID:        resp.ChatID,
+		QuestionID:    resp.QuestionID,
+		ParticipantID: resp.ParticipantID,
+		Content:       resp.Content,
+		CreatedAt:     resp.CreatedAt,
+		// Attachments:   ... // 必要なら変換追加
+	}
+}

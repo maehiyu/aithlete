@@ -1,7 +1,6 @@
 import { useParams, useLocation } from 'react-router-dom';
 import { useChat, useSendMessage } from '../hooks/chatHooks';
 import { useCurrentUser } from '../hooks/ParticipantHooks';
-import { Avatar } from '@mui/material';
 import { useSendHandler } from '../context/SendHandlerContext';
 import { useEffect, useRef } from 'react';
 import { useChatTimeline } from '../hooks/utils/useChatTimeline';
@@ -24,7 +23,6 @@ export function ChatDetail(props: ChatDetailProps) {
 
     useChatEvents(id ?? "");
 
-    // チャット下端へのスクロール用ref
     const bottomRef = useRef<HTMLDivElement | null>(null);
     const isFirstScroll = useRef(true);
 
@@ -36,7 +34,7 @@ export function ChatDetail(props: ChatDetailProps) {
                 participantId: currentUser.id,
                 questionId: latestQuestionId,
             });
-            // location.state.initialMessageを消して2重送信防止
+
             if (location.state?.initialMessage) {
                 window.history.replaceState(
                     { ...window.history.state, usr: { ...location.state, initialMessage: undefined } },
@@ -66,7 +64,10 @@ export function ChatDetail(props: ChatDetailProps) {
         }
     }, [data?.questions, data?.answers]);
 
-    const timeline = useChatTimeline(data?.questions, data?.answers);
+    const timeline = useChatTimeline(data?.questions, [
+        ...(data?.answers || []),
+        ...(data?.streamMessages ? [data.streamMessages] : [])
+    ]);
 
     if (isLoading) return <div>Loading...</div>;
     if (error) return <div style={{ color: 'red' }}>Error: {error instanceof Error ? error.message : String(error)}</div>;
@@ -84,7 +85,6 @@ export function ChatDetail(props: ChatDetailProps) {
                         participants={data.participants}
                     />
                 ))}
-                {/* 最下部にダミー要素 */}
                 <div ref={bottomRef} />
             </div>
         </div>

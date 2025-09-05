@@ -1,17 +1,16 @@
-from fastapi import FastAPI, Request, Header, HTTPException
-from pydantic import BaseModel
-from typing import Optional, List
 import requests
 import os
+import redis
+import json
+import requests
+import os
+import redis
+import json
+import threading
 
 
 from langchain_community.llms import HuggingFacePipeline
 from transformers import AutoModelForCausalLM, AutoTokenizer, pipeline
-
-
-
-app = FastAPI()
-
 
 model_name = "rinna/japanese-gpt2-medium"
 tokenizer = AutoTokenizer.from_pretrained(model_name, use_fast=False)
@@ -29,87 +28,118 @@ llm = HuggingFacePipeline(pipeline=pipe)
 
 EMBEDDING_API_URL = os.environ.get("EMBEDDING_API_URL", "http://embedding:8001/embed")
 WEAVIATE_URL = os.environ.get("WEAVIATE_URL", "http://weaviate:8080")
+REDIS_HOST = os.environ.get("BROKER_HOST", "broker")
+REDIS_PORT = int(os.environ.get("BROKER_PORT", "6379"))
+REDIS_DB = int(os.environ.get("BROKER_DB", "0"))
+REDIS_PASSWORD = os.environ.get("BROKER_PASSWORD", "")
 
+redis_client = redis.Redis(host=REDIS_HOST, port=REDIS_PORT, db=REDIS_DB, password=REDIS_PASSWORD, decode_responses=True)
 
-
-
-class QueryRequest(BaseModel):
-    question: str
-    chat_id: Optional[str] = None
-    question_id: Optional[str] = None
-    participant_id: Optional[str] = None
-
-
-
-class QueryResponse(BaseModel):
-    answer: str
-
-
-
-@app.get("/")
-async def root():
-    return {"message": "Hello, FastAPI!"}
-
-
-
-
-@app.post("/rag/query", response_model=QueryResponse)
-async def rag_query(request: QueryRequest, fastapi_request: Request):
-    auth_header = fastapi_request.headers.get("authorization")
-    print(f"[DEBUG] Authorization header: {auth_header}")
-    if not auth_header:
-        raise HTTPException(status_code=401, detail="Authorization token required")
-
-    embed_resp = requests.post(
-        EMBEDDING_API_URL,
-        json={"texts": [request.question]}
-    )
-    embed_resp.raise_for_status()
-    embedding = embed_resp.json()["embeddings"][0]
-
-    w_resp = requests.post(
-        f"{WEAVIATE_URL}/v1/graphql",
-        json={
-            "query": f"{{Get{{QAPair(nearVector:{{vector:{embedding}}},limit:3){{question answer}}}}}}"
-        }
-    )
-    w_resp.raise_for_status()
-    qa_pairs = []
+def handle_rag_event(event_json):
     try:
-        qa_pairs = w_resp.json()["data"]["Get"]["QAPair"]
-    except Exception:
+        event = json.loads(event_json)
+        payload = event.get("Payload", {})
+        question = payload.get("content") or payload.get("question")
+        print(f"[RAG] question value: {question}")
+        chat_id = event.get("ChatID") or payload.get("chat_id")
+        question_id = payload.get("ID") or payload.get("question_id")
+        participant_id = payload.get("ParticipantID") or payload.get("participant_id")
+
+        embed_resp = requests.post(
+            EMBEDDING_API_URL,
+            json={"texts": [question]}
+        )
+        embed_resp.raise_for_status()
+        embedding = embed_resp.json()["embeddings"][0]
+
+        w_resp = requests.post(
+            f"{WEAVIATE_URL}/v1/graphql",
+            json={
+                "query": f"{{Get{{QAPair(nearVector:{{vector:{embedding}}},limit:3){{question answer}}}}}}"
+            }
+        )
+        w_resp.raise_for_status()
         qa_pairs = []
-
-    context = "\n".join([
-        f"{qa.get('question','')}\n{qa.get('answer','')}" for qa in qa_pairs
-    ])
-    system_prompt = (
-        "あなたは以下の参考情報（context）だけを根拠に質問に答えてください。\n"
-        "contextに直接書かれていない内容は推測せず、「わかりません」や「contextに情報がありません」と答えてください。\n"
-        "context以外の知識や一般論は使わないでください。\n\n"
-    )
-    prompt = f"{system_prompt}context:\n{context}\n\n質問: {request.question}\n答え:"
-    answer = llm(prompt)
-
-    api_url = os.environ.get("API_URL", "http://api:8000")
-    if request.chat_id and request.question_id and request.participant_id:
-        # フロントからのAuthorizationヘッダーをそのまま転送
-        headers = {}
-        auth_header = fastapi_request.headers.get("authorization")
-        if auth_header:
-            headers["Authorization"] = auth_header
         try:
-            resp = requests.post(
-                f"{api_url}/chats/{request.chat_id}/answers",
-                json={
-                    "question_id": request.question_id,
-                    "content": answer,
-                    "participant_id": request.participant_id
-                },
-                headers=headers if headers else None
-            )
-            resp.raise_for_status()
-        except Exception as e:
-            print(f"[WARN] Failed to POST answer to API: {e}")
+            qa_pairs = w_resp.json()["data"]["Get"]["QAPair"]
+        except Exception:
+            qa_pairs = []
 
-    return QueryResponse(answer=answer)
+        context = "\n".join([
+            f"{qa.get('question','')}\n{qa.get('answer','')}" for qa in qa_pairs
+        ])
+        system_prompt = (
+            "あなたは以下の参考情報（context）だけを根拠に質問に答えてください。\n"
+            "contextに直接書かれていない内容は推測せず、「わかりません」や「contextに情報がありません」と答えてください。\n"
+            "context以外の知識や一般論は使わないでください。\n\n"
+        )
+        prompt = f"{system_prompt}context:\n{context}\n\n質問: {question}\n答え:"
+        from transformers import TextIteratorStreamer
+        import time
+        streamer = TextIteratorStreamer(tokenizer, skip_prompt=True, skip_special_tokens=True)
+
+        gen_thread = threading.Thread(target=model.generate, kwargs={
+            "input_ids": tokenizer(prompt, return_tensors="pt").input_ids,
+            "max_new_tokens": 48,
+            "temperature": 1.1,
+            "top_p": 0.85,
+            "repetition_penalty": 1.7,
+            "streamer": streamer
+        })
+        gen_thread.start()
+        answer = ""
+        for token in streamer:
+            answer += token
+
+            stream_event = {
+                "ID": question_id,
+                "ChatID": chat_id,
+                "Type": "stream",
+                "From": "ai_coach",
+                "To": [participant_id] if participant_id else [],
+                "Timestamp": int(time.time()),
+                "Payload": {
+                    "ID": question_id,
+                    "ChatID": chat_id,
+                    "QuestionID": question_id,
+                    "ParticipantID": participant_id,
+                    "Content": answer,
+                    "CreatedAt": int(time.time()),
+                    "Attachments": None
+                }
+            }
+            redis_client.publish("chat_stream", json.dumps(stream_event))
+        gen_thread.join()
+
+        chat_event = {
+            "ID": question_id,
+            "ChatID": chat_id,
+            "Type": "answer",
+            "From": "ai_coach",
+            "To": [participant_id] if participant_id else [],
+            "Timestamp": int(time.time()),
+            "Payload": {
+                "ID": question_id,
+                "ChatID": chat_id,
+                "QuestionID": question_id,
+                "ParticipantID": participant_id,
+                "Content": answer,
+                "CreatedAt": int(time.time()),
+                "Attachments": None
+            }
+        }
+        redis_client.publish("chat_events", json.dumps(chat_event))
+        print(f"[RAG] Published answer to chat_events: {chat_event}")
+    except Exception as e:
+        print(f"[RAG] Error handling event: {e}")
+
+def subscribe_rag_requests():
+    pubsub = redis_client.pubsub()
+    pubsub.subscribe("rag_requests")
+    print("[RAG] Subscribed to rag_requests")
+    for message in pubsub.listen():
+        if message["type"] == "message":
+            threading.Thread(target=handle_rag_event, args=(message["data"],)).start()
+
+if __name__ == "__main__":
+    subscribe_rag_requests()

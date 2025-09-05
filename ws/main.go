@@ -193,13 +193,14 @@ func main() {
 
 	go func() {
 		ctx := context.Background()
-		sub := rdb.Subscribe(ctx, "chat_events")
+		sub := rdb.Subscribe(ctx, "chat_events","chat_stream")
 		ch := sub.Channel()
 		for msg := range ch {
-			// ChatEventのToだけに送信
 			var event ChatEvent
 			if err := json.Unmarshal([]byte(msg.Payload), &event); err == nil {
-				hub.SendToUsers([]byte(msg.Payload), event.To)
+				if !(event.Type == "chat_event" && event.From == "ai_coach") {
+					hub.SendToUsers([]byte(msg.Payload), event.To)
+				}
 			}
 		}
 	}()

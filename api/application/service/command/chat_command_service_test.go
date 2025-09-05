@@ -6,20 +6,65 @@ import (
 	"testing"
 )
 
-// RagClientのモック
-type MockRagClient struct {
-	CallRAGServerFunc func(chatID, questionContent, aiID, questionID, token string) (string, error)
+// --- 共通モック定義 ---
+type MockChatRepository struct {
+	CreateChatFunc                func(request *entity.Chat) (*entity.Chat, error)
+	GetParticipantIDsByChatIDFunc func(chatID string) ([]string, error)
+	AddQuestionFunc               func(chatId string, q *entity.Question) error
+	AddAnswerFunc                 func(chatId string, a *entity.Answer) error
+	FindChatByIDFunc              func(chatId string) (*entity.Chat, error)
+	UpdateChatFunc                func(chat *entity.Chat) (*entity.Chat, error)
+	GetQuestionContentFunc        func(questionID string) (string, error)
 }
 
-func (m *MockRagClient) CallRAGServer(chatID, questionContent, aiID, questionID, token string) (string, error) {
-	if m.CallRAGServerFunc != nil {
-		return m.CallRAGServerFunc(chatID, questionContent, aiID, questionID, token)
+func (m *MockChatRepository) GetQuestionContent(questionID string) (string, error) {
+	if m.GetQuestionContentFunc != nil {
+		return m.GetQuestionContentFunc(questionID)
 	}
 	return "", nil
 }
 
+func (m *MockChatRepository) CreateChat(request *entity.Chat) (*entity.Chat, error) {
+	if m.CreateChatFunc != nil {
+		return m.CreateChatFunc(request)
+	}
+	return request, nil
+}
+func (m *MockChatRepository) GetParticipantIDsByChatID(chatID string) ([]string, error) {
+	if m.GetParticipantIDsByChatIDFunc != nil {
+		return m.GetParticipantIDsByChatIDFunc(chatID)
+	}
+	return []string{}, nil
+}
+func (m *MockChatRepository) AddQuestion(chatId string, q *entity.Question) error {
+	if m.AddQuestionFunc != nil {
+		return m.AddQuestionFunc(chatId, q)
+	}
+	return nil
+}
+func (m *MockChatRepository) AddAnswer(chatId string, a *entity.Answer) error {
+	if m.AddAnswerFunc != nil {
+		return m.AddAnswerFunc(chatId, a)
+	}
+	return nil
+}
+func (m *MockChatRepository) FindChatByID(chatId string) (*entity.Chat, error) {
+	if m.FindChatByIDFunc != nil {
+		return m.FindChatByIDFunc(chatId)
+	}
+	return &entity.Chat{ID: chatId}, nil
+}
+func (m *MockChatRepository) UpdateChat(chat *entity.Chat) (*entity.Chat, error) {
+	if m.UpdateChatFunc != nil {
+		return m.UpdateChatFunc(chat)
+	}
+	return chat, nil
+}
+
+// --- テスト本体は既存のまま、NewMock...をMock...に置換 ---
+
 func TestCreateChat_Success(t *testing.T) {
-	chatRepo := NewMockChatRepository()
+	chatRepo := &MockChatRepository{}
 	chatRepo.CreateChatFunc = func(request *entity.Chat) (*entity.Chat, error) {
 		return request, nil
 	}
@@ -27,7 +72,7 @@ func TestCreateChat_Success(t *testing.T) {
 		return []string{"1", "2"}, nil
 	}
 
-	participantSvc := NewMockParticipantRepository()
+	participantSvc := &MockParticipantRepository{}
 	participantSvc.FindByIDFunc = func(id string) (*entity.Participant, error) {
 		return &entity.Participant{
 			ID:   id,
@@ -39,7 +84,6 @@ func TestCreateChat_Success(t *testing.T) {
 		chatRepo:        chatRepo,
 		ParticipantRepo: participantSvc,
 		EventPublisher:  nil,
-		RagClient:       &MockRagClient{},
 	}
 
 	reqTitle := "test chat"
@@ -64,7 +108,7 @@ func TestCreateChat_Success(t *testing.T) {
 }
 
 func TestSendQuestion_Success(t *testing.T) {
-	chatRepo := NewMockChatRepository()
+	chatRepo := &MockChatRepository{}
 	chatRepo.AddQuestionFunc = func(chatId string, q *entity.Question) error {
 		return nil
 	}
@@ -72,7 +116,7 @@ func TestSendQuestion_Success(t *testing.T) {
 		return []string{"1", "2"}, nil
 	}
 
-	participantSvc := NewMockParticipantRepository()
+	participantSvc := &MockParticipantRepository{}
 	participantSvc.FindByIDFunc = func(id string) (*entity.Participant, error) {
 		return &entity.Participant{
 			ID:   id,
@@ -84,7 +128,6 @@ func TestSendQuestion_Success(t *testing.T) {
 		chatRepo:        chatRepo,
 		ParticipantRepo: participantSvc,
 		EventPublisher:  nil,
-		RagClient:       &MockRagClient{},
 	}
 
 	req := dto.QuestionCreateRequest{
@@ -102,7 +145,7 @@ func TestSendQuestion_Success(t *testing.T) {
 }
 
 func TestSendAnswer_Success(t *testing.T) {
-	chatRepo := NewMockChatRepository()
+	chatRepo := &MockChatRepository{}
 	chatRepo.AddAnswerFunc = func(chatId string, a *entity.Answer) error {
 		return nil
 	}
@@ -110,7 +153,7 @@ func TestSendAnswer_Success(t *testing.T) {
 		return []string{"1", "2"}, nil
 	}
 
-	participantSvc := NewMockParticipantRepository()
+	participantSvc := &MockParticipantRepository{}
 	participantSvc.FindByIDFunc = func(id string) (*entity.Participant, error) {
 		return &entity.Participant{
 			ID:   id,
@@ -122,7 +165,6 @@ func TestSendAnswer_Success(t *testing.T) {
 		chatRepo:        chatRepo,
 		ParticipantRepo: participantSvc,
 		EventPublisher:  nil,
-		RagClient:       &MockRagClient{},
 	}
 
 	req := dto.AnswerCreateRequest{
@@ -141,7 +183,7 @@ func TestSendAnswer_Success(t *testing.T) {
 }
 
 func TestUpdateChat_Success(t *testing.T) {
-	chatRepo := NewMockChatRepository()
+	chatRepo := &MockChatRepository{}
 	chatRepo.FindChatByIDFunc = func(chatId string) (*entity.Chat, error) {
 		oldTitle := "old title"
 		return &entity.Chat{ID: chatId, Title: &oldTitle}, nil
@@ -153,7 +195,7 @@ func TestUpdateChat_Success(t *testing.T) {
 		return []string{"1", "2"}, nil
 	}
 
-	participantSvc := NewMockParticipantRepository()
+	participantSvc := &MockParticipantRepository{}
 	participantSvc.FindByIDFunc = func(id string) (*entity.Participant, error) {
 		return &entity.Participant{
 			ID:   id,
@@ -165,7 +207,6 @@ func TestUpdateChat_Success(t *testing.T) {
 		chatRepo:        chatRepo,
 		ParticipantRepo: participantSvc,
 		EventPublisher:  nil,
-		RagClient:       &MockRagClient{},
 	}
 
 	reqTitle := "new titile"

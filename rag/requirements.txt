@@ -1,8 +1,5 @@
-fastapi
-uvicorn
 langchain
 langchain_community
-pydantic
 transformers
 torch
 protobuf
@@ -13,3 +10,4 @@ accelerate
 safetensors
 numpy
 typing-extensions
+redis

@@ -1,10 +1,11 @@
 package broker
 
 import (
-	"context"
 	"api/application/dto"
+	"context"
 )
 
-type ChatEventPublisher interface {
+type ChatEventBroker interface {
 	PublishChatEvent(ctx context.Context, event dto.ChatEvent) error
+	SubscribeChatEvent(ctx context.Context, handler func(dto.ChatEvent) error) error
 }

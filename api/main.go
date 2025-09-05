@@ -1,10 +1,10 @@
 package main
 
 import (
+	"api/application/dto"
 	"api/application/service/command"
 	appquery "api/application/service/query"
 	infraquery "api/infrastructure/query"
-	"api/infrastructure/rag"
 	"api/infrastructure/repository"
 	"api/presentation/handler"
 	"api/presentation/middleware"
@@ -45,7 +45,8 @@ func main() {
 		DB:       redisDB,
 	})
 
-	eventPublisher := broker.NewRedisChatEventPublisher(redisClient, "chat_events")
+	eventPublisher := broker.NewRedisChatEventBroker(redisClient, "chat_events")
+	ragRequestBroker := broker.NewRedisChatEventBroker(redisClient, "rag_requests")
 	r := gin.Default()
 	r.Use(cors.New(cors.Config{
 		AllowOrigins:     []string{"http://localhost:3000"},
@@ -81,8 +82,13 @@ func main() {
 		"http://embedding:8001/embed", // Embedding API endpoint
 	)
 
-	ragClient := rag.NewRAGClient()
-	chatCommandService := command.NewChatCommandService(chatRepository, participantRepository, eventPublisher, vectorStoreRepo, ragClient)
+	chatCommandService := command.NewChatCommandService(chatRepository, participantRepository, eventPublisher, ragRequestBroker, vectorStoreRepo)
+	// chat_events購読してDB保存
+	if err := eventPublisher.SubscribeChatEvent(context.Background(), func(event dto.ChatEvent) error {
+		return handler.ChatEventHandler(event, chatCommandService)
+	}); err != nil {
+		log.Printf("failed to subscribe chat_events: %v", err)
+	}
 	participantCommandService := command.NewParticipantCommandService(participantRepository)
 
 	r.POST("/chats/:id/questions", handler.HandleSendQuestion(chatCommandService))
