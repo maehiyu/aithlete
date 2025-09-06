@@ -1,3 +1,4 @@
+
 package main
 
 import (
@@ -12,17 +13,36 @@ import (
 	"log"
 	"os"
 	"strconv"
-
+	"bytes"
+	"net/http"
 	"api/infrastructure/broker"
-
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/redis/go-redis/v9"
 )
+// QAPairスキーマ作成関数
+func createWeaviateSchema() {
+       schema := `{
+	       "class": "QAPair",
+	       "vectorizer": "none",
+	       "vectorIndexConfig": {"vectorDimension": 384},
+	       "properties": [
+		       {"name": "question", "dataType": ["text"]},
+		       {"name": "answer", "dataType": ["text"]}
+	       ]
+       }`
+       resp, err := http.Post("http://weaviate:8080/v1/schema", "application/json", bytes.NewBuffer([]byte(schema)))
+       if err != nil {
+	       log.Printf("failed to create Weaviate schema: %v", err)
+	       return
+       }
+       defer resp.Body.Close()
+       log.Printf("Weaviate schema creation status: %v", resp.Status)
+}
 
 func main() {
-	// Redis接続情報を環境変数から取得
+	createWeaviateSchema()
 	redisHost := os.Getenv("BROKER_HOST")
 	if redisHost == "" {
 		redisHost = "broker"
@@ -83,7 +103,7 @@ func main() {
 	)
 
 	chatCommandService := command.NewChatCommandService(chatRepository, participantRepository, eventPublisher, ragRequestBroker, vectorStoreRepo)
-	// chat_events購読してDB保存
+
 	if err := eventPublisher.SubscribeChatEvent(context.Background(), func(event dto.ChatEvent) error {
 		return handler.ChatEventHandler(event, chatCommandService)
 	}); err != nil {

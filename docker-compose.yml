@@ -92,7 +92,7 @@ services:
       - ./api/init.sql:/docker-entrypoint-initdb.d/init.sql
 
   weaviate:
-    image: semitechnologies/weaviate:1.25.3
+    image: semitechnologies/weaviate:1.31.13
     restart: always
     ports:
       - "8080:8080" # REST API
@@ -105,6 +105,12 @@ services:
       # embeddingを自前で生成する場合はvectorizer=none
     volumes:
       - weaviate_data:/var/lib/weaviate
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/v1/schema"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
   storage:
     image: minio/minio:latest
     command: server /data

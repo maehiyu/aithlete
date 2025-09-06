@@ -7,7 +7,8 @@ import os
 import redis
 import json
 import threading
-
+import uuid
+import datetime
 
 from langchain_community.llms import HuggingFacePipeline
 from transformers import AutoModelForCausalLM, AutoTokenizer, pipeline
@@ -38,12 +39,20 @@ redis_client = redis.Redis(host=REDIS_HOST, port=REDIS_PORT, db=REDIS_DB, passwo
 def handle_rag_event(event_json):
     try:
         event = json.loads(event_json)
-        payload = event.get("Payload", {})
+        payload = event.get("payload", {})
+        # toがリストの場合は最初の要素を使う
+        to_value = event.get("to")
+        if isinstance(to_value, list):
+            participant_id = to_value[0] if to_value else None
+        else:
+            participant_id = to_value
         question = payload.get("content") or payload.get("question")
-        print(f"[RAG] question value: {question}")
-        chat_id = event.get("ChatID") or payload.get("chat_id")
-        question_id = payload.get("ID") or payload.get("question_id")
-        participant_id = payload.get("ParticipantID") or payload.get("participant_id")
+        chat_id = event.get("chat_id") or payload.get("chat_id")
+        question_id = payload.get("id") or payload.get("id")
+        opponent_id = payload.get("participant_id") or payload.get("participant_id")
+
+        event_id = str(uuid.uuid4())
+        answer_id = str(uuid.uuid4())
 
         embed_resp = requests.post(
             EMBEDDING_API_URL,
@@ -92,46 +101,45 @@ def handle_rag_event(event_json):
             answer += token
 
             stream_event = {
-                "ID": question_id,
-                "ChatID": chat_id,
-                "Type": "stream",
-                "From": "ai_coach",
-                "To": [participant_id] if participant_id else [],
-                "Timestamp": int(time.time()),
-                "Payload": {
-                    "ID": question_id,
-                    "ChatID": chat_id,
-                    "QuestionID": question_id,
-                    "ParticipantID": participant_id,
-                    "Content": answer,
-                    "CreatedAt": int(time.time()),
-                    "Attachments": None
+                "id": event_id,
+                "chat_id": chat_id,
+                "type": "stream",
+                "from": participant_id,
+                "to": [opponent_id] if opponent_id is not None else [],
+                "timestamp": int(time.time()),
+                "payload": {
+                    "id": answer_id,
+                    "chat_id": chat_id,
+                    "question_id": question_id,
+                    "participant_id": participant_id,
+                    "content": answer,
+                    "created_at": datetime.datetime.utcnow().isoformat() + 'Z',
+                    "attachments": None
                 }
             }
             redis_client.publish("chat_stream", json.dumps(stream_event))
         gen_thread.join()
 
         chat_event = {
-            "ID": question_id,
-            "ChatID": chat_id,
-            "Type": "answer",
-            "From": "ai_coach",
-            "To": [participant_id] if participant_id else [],
-            "Timestamp": int(time.time()),
-            "Payload": {
-                "ID": question_id,
-                "ChatID": chat_id,
-                "QuestionID": question_id,
-                "ParticipantID": participant_id,
-                "Content": answer,
-                "CreatedAt": int(time.time()),
-                "Attachments": None
+            "id": event_id,
+            "chat_id": chat_id,
+            "type": "ai_answer",
+            "from": participant_id,
+            "to": [opponent_id] if opponent_id is not None else [],
+            "timestamp": int(time.time()),
+            "payload": {
+                "id": answer_id,
+                "chat_id": chat_id,
+                "question_id": question_id,
+                "participant_id": participant_id,
+                "content": answer,
+                "created_at": datetime.datetime.utcnow().isoformat() + 'Z',
+                "attachments": None
             }
         }
         redis_client.publish("chat_events", json.dumps(chat_event))
-        print(f"[RAG] Published answer to chat_events: {chat_event}")
     except Exception as e:
-        print(f"[RAG] Error handling event: {e}")
+        print(f"[RAG] Error handling event: {e}", flush=True)
 
 def subscribe_rag_requests():
     pubsub = redis_client.pubsub()

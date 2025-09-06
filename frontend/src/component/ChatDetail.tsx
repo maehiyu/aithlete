@@ -62,7 +62,7 @@ export function ChatDetail(props: ChatDetailProps) {
                 bottomRef.current.scrollIntoView({ behavior: "smooth" });
             }
         }
-    }, [data?.questions, data?.answers]);
+    }, [data?.questions, data?.answers, data?.streamMessages]);
 
     const timeline = useChatTimeline(data?.questions, [
         ...(data?.answers || []),
@@ -75,7 +75,7 @@ export function ChatDetail(props: ChatDetailProps) {
 
 
     return (
-        <div style={{ maxWidth: 600, margin: '0 auto'}}>
+        <div style={{ maxWidth: 600, margin: '0 auto', paddingBottom: '64px' }}>
             <div>
                 {timeline.map(item => (
                     <ChatMessageItem

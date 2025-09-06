@@ -101,6 +101,7 @@ func (s *ChatCommandService) SendQuestion(chatID string, req dto.QuestionCreateR
 					Payload:   questionResponse,
 				}
 				_ = s.RagRequestBroker.PublishChatEvent(context.Background(), event)
+				break
 			}
 		}
 	}

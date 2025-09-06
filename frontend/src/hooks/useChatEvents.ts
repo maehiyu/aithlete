@@ -40,9 +40,15 @@ export function useChatEvents(chatId: string) {
           }
           if (data.type === "question") {
             const payload = toCamelCase(data.payload);
+            // streamMessagesがあればanswersにappend
+            let newAnswers = old.answers || [];
+            if (old.streamMessages) {
+              newAnswers = [...newAnswers, old.streamMessages];
+            }
             return {
               ...old,
               questions: [...(old.questions || []), payload],
+              answers: newAnswers,
               streamMessages: undefined,
             };
           }

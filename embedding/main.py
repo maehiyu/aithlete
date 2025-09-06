@@ -14,8 +14,10 @@ class EmbeddingResponse(BaseModel):
 
 @app.post("/embed", response_model=EmbeddingResponse)
 def embed(req: EmbeddingRequest):
+    print(f"[EMBEDDING] texts: {req.texts}")
     try:
         embs = model.encode(req.texts, convert_to_numpy=True)
         return EmbeddingResponse(embeddings=embs.tolist())
     except Exception as e:
+        print(f"[EMBEDDING] error: {e}")
         raise HTTPException(status_code=500, detail=str(e))
