@@ -1,3 +1,10 @@
+.app-bg-gray {
+  background-color: #e7e7f2;
+}
+
+body {
+  background-color: #ffffff;
+}
 .App {
   text-align: center;
 }

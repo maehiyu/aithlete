@@ -1,0 +1,13 @@
+FROM golang:1.25-alpine
+WORKDIR /app
+
+RUN apk add --no-cache tzdata git
+RUN go install github.com/air-verse/air@latest
+
+
+COPY . .
+
+EXPOSE 9000
+ENV PORT=9000
+
+CMD ["air"]

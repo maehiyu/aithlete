@@ -126,7 +126,7 @@ func main() {
 	r.GET("/coaches", handler.HandleGetCoachesBySport(participantQueryService))
 
 	r.GET("/", func(c *gin.Context) {
-		c.String(200, "Hello, Go API!")
+		c.String(200, "Hello, Go API")
 	})
 
 	port := os.Getenv("PORT")

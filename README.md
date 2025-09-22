@@ -54,8 +54,8 @@ classDiagram
 	+ID: string
 	+ParticipantID: string
 	+ChatID: string
-	+StartedAt: time.Time
-	+LastActiveAt: time.Time
+	+StartedAt: string
+	+LastActiveAt: string
 	+Status: string %% "active", "inactive", "disconnected" など
 	+IPAddress: string
 	}
@@ -93,7 +93,7 @@ classDiagram
 
 	class PoseData {
 		+ID: string
-		+Keypoints: string
+		+ParticipantIDs: string[]
 		+Score: float64
 	}
 	Chat "1" -- "0..*" Session

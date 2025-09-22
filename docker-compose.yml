@@ -23,7 +23,9 @@ services:
     volumes:
       - broker_data:/data
   api:
-    build: ./api
+    build: 
+      context: ./api
+      dockerfile: Dockerfile.dev
     environment:
       - DB_HOST=db
       - DB_USER=${POSTGRES_USER}
@@ -39,13 +41,17 @@ services:
       - COGNITO_USER_POOL_ID=${COGNITO_USER_POOL_ID}
     ports:
       - "8000:8000"
+    volumes:
+        - ./api:/app
     depends_on:
       - db
       # - 
       - broker
 
   ws:
-    build: ./ws
+    build: 
+      context: ./ws
+      dockerfile: Dockerfile.dev
     environment:
       - DB_HOST=db
       - BROKER_HOST=${BROKER_HOST}
@@ -56,18 +62,24 @@ services:
       - COGNITO_USER_POOL_ID=${COGNITO_USER_POOL_ID}
     ports:
       - "9000:9000"
+    volumes:
+        - ./ws:/app
     depends_on:
       - db
       - broker
 
   rag:
-    build: ./rag
+    build: 
+      context: ./rag
+      dockerfile: Dockerfile.dev
     environment:
       - DB_HOST=db
       - BROKER_HOST=${BROKER_HOST}
       - BROKER_PORT=${BROKER_PORT}
       - BROKER_PASSWORD=${BROKER_PASSWORD}
       - BROKER_DB=${BROKER_DB}
+    volumes:
+        - ./rag:/app
     ports:
       - "9200:9200"
     depends_on:

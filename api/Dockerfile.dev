@@ -1,0 +1,15 @@
+FROM golang:1.25-alpine
+WORKDIR /app
+
+# 必要なパッケージとairをインストール
+RUN apk add --no-cache tzdata git
+RUN go install github.com/air-verse/air@latest
+
+# ソースコードをマウント（docker-compose.ymlでvolumes指定）
+COPY . .
+
+EXPOSE 8000
+ENV PORT=8000
+
+# airでホットリロード
+CMD ["air"]
