@@ -2,6 +2,7 @@ package dto
 
 import (
 	"api/domain/entity"
+	"sort"
 	"time"
 )
 
@@ -26,13 +27,46 @@ func ChatUpdateRequestToEntity(chat *entity.Chat, dto ChatUpdateRequest) {
 	}
 }
 
-func ChatEntityToDetailResponse(chat *entity.Chat, participants []ParticipantResponse) ChatDetailResponse {
-	return ChatDetailResponse{
+func ChatEntityToDetailResponse(chat *entity.Chat, participants []entity.Participant) *ChatDetailResponse {
+	chatItems := make([]ChatItem, 0)
+	for _, q := range chat.Questions {
+		chatItems = append(chatItems, ChatItem{
+			ID:            q.ID,
+			ParticipantID: q.ParticipantID,
+			Content:       q.Content,
+			CreatedAt:     q.CreatedAt,
+			Type:         "question",
+		})
+	}
+	for _, a := range chat.Answers {
+		chatItems = append(chatItems, ChatItem{
+			ID:            a.ID,
+			ParticipantID: a.ParticipantID,
+			Content:       a.Content,
+			CreatedAt:     a.CreatedAt,
+			Type:         "answer",
+		})
+	}
+
+	sort.Slice(chatItems, func(i, j int) bool {
+		return chatItems[i].CreatedAt.Before(chatItems[j].CreatedAt)
+	})
+
+	participantResponses := make([]ParticipantResponse, len(participants))
+	for i, p := range participants {
+		participantResponses[i] = ParticipantResponse{
+			ID:      p.ID,
+			Name:    p.Name,
+			Role:    p.Role,
+			IconURL: p.IconURL,
+		}
+	}
+
+	return &ChatDetailResponse{
 		ID:           chat.ID,
 		Title:        chat.Title,
-		Participants: participants,
-		Questions:    QuestionsEntityToResponse(chat.Questions),
-		Answers:      AnswersEntityToResponse(chat.Answers),
+		Participants: participantResponses,
+		Timeline:     chatItems,
 		StartedAt:    chat.StartedAt,
 		LastActiveAt: chat.LastActiveAt,
 	}
@@ -67,8 +101,11 @@ func AnswersEntityToResponse(answers []entity.Answer) []AnswerResponse {
 	return res
 }
 
-func ParticipantEntityToResponse(p *entity.Participant) ParticipantResponse {
-	return ParticipantResponse{
+func ParticipantEntityToResponse(p *entity.Participant) *ParticipantResponse {
+	if p == nil {
+		return nil
+	}
+	return &ParticipantResponse{
 		ID:      p.ID,
 		Name:    p.Name,
 		Role:    p.Role,

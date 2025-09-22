@@ -18,7 +18,11 @@ func (s *ParticipantQueryService) GetParticipantsByChatID(chatID string) ([]dto.
 	if err != nil {
 		return nil, err
 	}
-	return participants, nil
+	response := make([]dto.ParticipantResponse, len(participants))
+	for i, p := range participants {
+		response[i] = *dto.ParticipantEntityToResponse(&p)
+	}
+	return response, nil
 }
 
 func (s *ParticipantQueryService) GetParticipantByID(participantID string) (*dto.ParticipantResponse, error) {
@@ -26,7 +30,8 @@ func (s *ParticipantQueryService) GetParticipantByID(participantID string) (*dto
 	if err != nil {
 		return nil, err
 	}
-	return participant, nil
+	response := dto.ParticipantEntityToResponse(participant)
+	return response, nil
 }
 
 func (s *ParticipantQueryService) GetCoachesBySport(sport string) ([]dto.ParticipantResponse, error) {
@@ -34,5 +39,9 @@ func (s *ParticipantQueryService) GetCoachesBySport(sport string) ([]dto.Partici
 	if err != nil {
 		return nil, err
 	}
-	return participants, nil
+	response := make([]dto.ParticipantResponse, len(participants))
+	for i, p := range participants {
+		response[i] = *dto.ParticipantEntityToResponse(&p)
+	}
+	return response, nil
 }

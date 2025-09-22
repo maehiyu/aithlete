@@ -1,8 +1,9 @@
 package query
 
 import (
-	"api/application/dto"
+	"api/application/dto" 
 	"api/application/query"
+	"api/domain/entity" 
 	"context"
 
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -16,7 +17,6 @@ func NewChatQuery(pool *pgxpool.Pool) *ChatQuery {
 	return &ChatQuery{pool: pool}
 }
 
-// FindChatsByUserID: ユーザーが参加しているチャット一覧（サマリー）を取得
 func (q *ChatQuery) FindChatsByUserID(userID string) ([]dto.ChatSummaryResponse, error) {
 	ctx := context.Background()
 	conn, err := q.pool.Acquire(ctx)
@@ -82,8 +82,8 @@ func derefString(s *string) string {
 	return *s
 }
 
-// FindChatByID: チャット詳細を取得
-func (q *ChatQuery) FindChatByID(chatID string) (*dto.ChatDetailResponse, error) {
+
+func (q *ChatQuery) FindChatByID(chatID string) (*entity.Chat, error) {
 	ctx := context.Background()
 	conn, err := q.pool.Acquire(ctx)
 	if err != nil {
@@ -96,99 +96,96 @@ func (q *ChatQuery) FindChatByID(chatID string) (*dto.ChatDetailResponse, error)
 		FROM chats WHERE id = $1
 	`, chatID)
 
-	var chat dto.ChatDetailResponse
+	var chat entity.Chat
 	var title *string
 	var participantIDs []string
 	if err := row.Scan(&chat.ID, &title, &chat.StartedAt, &chat.LastActiveAt, &participantIDs); err != nil {
 		return nil, err
 	}
 	chat.Title = title
+	chat.ParticipantIDs = participantIDs
 
-	participants := []dto.ParticipantResponse{}
-	for _, pid := range participantIDs {
-		prow := conn.QueryRow(ctx, `SELECT id, name, email, role, icon_url, sports FROM participants WHERE id = $1`, pid)
-		var p dto.ParticipantResponse
-		var iconURL *string
-		if err := prow.Scan(&p.ID, &p.Name, &p.Email, &p.Role, &iconURL, &p.Sports); err == nil {
-			p.IconURL = iconURL
-			participants = append(participants, p)
-		}
-	}
-	chat.Participants = participants
-
-	qRows, err := conn.Query(ctx, `SELECT id, participant_id, content, created_at FROM questions WHERE chat_id = $1 ORDER BY created_at`, chatID)
+	qRows, err := conn.Query(ctx, `SELECT id, chat_id, participant_id, content, created_at FROM questions WHERE chat_id = $1 ORDER BY created_at`, chatID)
 	if err != nil {
 		return nil, err
 	}
 	defer qRows.Close()
-	questions := []dto.QuestionResponse{}
+	questions := []entity.Question{}
 	for qRows.Next() {
-		var qd dto.QuestionResponse
-		if err := qRows.Scan(&qd.ID, &qd.ParticipantID, &qd.Content, &qd.CreatedAt); err != nil {
+		var qItem entity.Question
+		if err := qRows.Scan(&qItem.ID, &qItem.ChatID, &qItem.ParticipantID, &qItem.Content, &qItem.CreatedAt); err != nil {
 			return nil, err
 		}
 
-		// attachmentsは別コネクションで取得
-		attConn, err := q.pool.Acquire(ctx)
+		var attConn *pgxpool.Conn 
+		attConn, err = q.pool.Acquire(ctx)
 		if err != nil {
 			return nil, err
 		}
-		aRows, err := attConn.Query(ctx, `SELECT type, url FROM attachments WHERE question_id = $1`, qd.ID)
+	
+		aRows, err := attConn.Query(ctx, `SELECT id, type, url, thumbnail, pose_id, meta, original_id, question_id, answer_id FROM attachments WHERE question_id = $1`, qItem.ID)
 		if err != nil {
-			attConn.Release()
+			attConn.Release() 
 			return nil, err
 		}
-		attachments := []dto.AttachmentResponse{}
+		attachments := []entity.Attachment{} 
 		for aRows.Next() {
-			var att dto.AttachmentResponse
-			if err := aRows.Scan(&att.Type, &att.URL); err == nil {
-				attachments = append(attachments, att)
+			var a entity.Attachment
+			if err := aRows.Scan(&a.ID, &a.Type, &a.URL, &a.Thumbnail, &a.PoseID, &a.Meta, &a.OriginalID, &a.QuestionID, &a.AnswerID); err != nil {
+				aRows.Close()
+				attConn.Release()
+				return nil, err
 			}
+			attachments = append(attachments, a)
 		}
 		aRows.Close()
 		attConn.Release()
-		qd.Attachments = attachments
-		questions = append(questions, qd)
+		qItem.Attachments = attachments
+		questions = append(questions, qItem)
 	}
 	chat.Questions = questions
 
-	// answers取得
-	aRows, err := conn.Query(ctx, `SELECT id, question_id, participant_id, content, created_at FROM answers WHERE chat_id = $1 ORDER BY created_at`, chatID)
+	aRows, err := conn.Query(ctx, `SELECT id, chat_id, question_id, participant_id, content, created_at FROM answers WHERE chat_id = $1 ORDER BY created_at`, chatID)
 	if err != nil {
 		return nil, err
 	}
 	defer aRows.Close()
-	answers := []dto.AnswerResponse{}
+	answers := []entity.Answer{} 
 	for aRows.Next() {
-		var ad dto.AnswerResponse
-		if err := aRows.Scan(&ad.ID, &ad.QuestionID, &ad.ParticipantID, &ad.Content, &ad.CreatedAt); err != nil {
+		var aItem entity.Answer 
+		if err := aRows.Scan(&aItem.ID, &aItem.ChatID, &aItem.QuestionID, &aItem.ParticipantID, &aItem.Content, &aItem.CreatedAt); err != nil {
 			return nil, err
 		}
-		// attachments取得（answerごと）
-		attConn, err := q.pool.Acquire(ctx)
+
+		var attConn *pgxpool.Conn
+		attConn, err = q.pool.Acquire(ctx)
 		if err != nil {
 			return nil, err
 		}
-		attRows, err := attConn.Query(ctx, `SELECT type, url FROM attachments WHERE answer_id = $1`, ad.ID)
+	
+		attRows, err := attConn.Query(ctx, `SELECT id, type, url, thumbnail, pose_id, meta, original_id, question_id, answer_id FROM attachments WHERE answer_id = $1`, aItem.ID) 
 		if err != nil {
-			attConn.Release()
+			attConn.Release() 
 			return nil, err
 		}
-		attachments := []dto.AttachmentResponse{}
+		attachments := []entity.Attachment{}
 		for attRows.Next() {
-			var att dto.AttachmentResponse
-			if err := attRows.Scan(&att.Type, &att.URL); err == nil {
-				attachments = append(attachments, att)
+			var att entity.Attachment
+			if err := attRows.Scan(&att.ID, &att.Type, &att.URL, &att.Thumbnail, &att.PoseID, &att.Meta, &att.OriginalID, &att.QuestionID, &att.AnswerID); err != nil {
+				attRows.Close()
+				attConn.Release()
+				return nil, err
 			}
+			attachments = append(attachments, att)
 		}
 		attRows.Close()
 		attConn.Release()
-		ad.Attachments = attachments
-		answers = append(answers, ad)
+		aItem.Attachments = attachments
+		answers = append(answers, aItem)
 	}
 	chat.Answers = answers
 
 	return &chat, nil
 }
 
-var _ interface{ query.ChatQueryInterface } = (*ChatQuery)(nil)
+var _ query.ChatQueryInterface = (*ChatQuery)(nil)

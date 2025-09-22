@@ -3,15 +3,15 @@ package query
 import (
 	"api/application/dto"
 	"api/application/query"
-	"sort"
 )
 
 type ChatQueryService struct {
-	chatQuery query.ChatQueryInterface
+	chatQuery        query.ChatQueryInterface
+	participantQuery query.ParticipantQueryInterface
 }
 
-func NewChatQueryService(qs query.ChatQueryInterface) *ChatQueryService {
-	return &ChatQueryService{chatQuery: qs}
+func NewChatQueryService(chatQuery query.ChatQueryInterface, participantQuery query.ParticipantQueryInterface) *ChatQueryService {
+	return &ChatQueryService{chatQuery: chatQuery, participantQuery: participantQuery}
 }
 	
 func (s *ChatQueryService) GetChatsByUserID(userID string) ([]dto.ChatSummaryResponse, error) {
@@ -21,16 +21,20 @@ func (s *ChatQueryService) GetChatsByUserID(userID string) ([]dto.ChatSummaryRes
 		return nil, err
 	}
 	
-	SortChatsByLastActive(chats)
 	return chats, nil
 }
 
 func (s *ChatQueryService) GetChatByID(chatID string) (*dto.ChatDetailResponse, error) {
-	return s.chatQuery.FindChatByID(chatID)
-}
+	chat, err := s.chatQuery.FindChatByID(chatID)
+	if err != nil {
+		return nil, err
+	}
 
-func SortChatsByLastActive(chats []dto.ChatSummaryResponse) {
-	sort.Slice(chats, func(i, j int) bool {
-		return chats[i].LastActiveAt.After(chats[j].LastActiveAt)
-	})
+	participants, err := s.participantQuery.FindParticipantsByIDs(chat.ParticipantIDs)
+	if err != nil {
+		return nil, err
+	}
+
+	response := dto.ChatEntityToDetailResponse(chat, participants)
+	return response, nil
 }

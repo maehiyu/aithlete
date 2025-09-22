@@ -94,14 +94,8 @@ export function useSendAnswer(chatId: string) {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (data: { content: string; participantId: string; questionId: string }) => sendAnswer(chatId, data),
-    onSuccess: (answer) => {
-      queryClient.setQueryData(["chat", chatId], (old: any) => {
-        if (!old) return old;
-        return {
-          ...old,
-          answers: [...(old.answers || []), answer],
-        };
-      });
+    onSuccess: () => {
+      // WebSocketイベントでキャッシュが更新されるため、ここでは何もしない
     },
   });
 }
@@ -110,14 +104,8 @@ export function useSendQuestion(chatId: string) {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (data: { content: string; participantId: string }) => sendQuestion(chatId, data),
-    onSuccess: (question) => {
-      queryClient.setQueryData(["chat", chatId], (old: any) => {
-        if (!old) return old;
-        return {
-          ...old,
-          questions: [...(old.questions || []), question],
-        };
-      });
+    onSuccess: () => {
+      // WebSocketイベントでキャッシュが更新されるため、ここでは何もしない
     },
   });
 }
@@ -135,21 +123,9 @@ export function useSendMessage(chatId: string, role: string, questionId?: string
     },
     onSuccess: (result, variables) => {
       if (role === "coach") {
-        queryClient.setQueryData(["chat", chatId], (old: any) => {
-          if (!old) return old;
-          return {
-            ...old,
-            answers: [...(old.answers || []), result],
-          };
-        });
+        // 自分が送った回答の場合、WebSocketイベントでキャッシュが更新されるため、ここでは何もしない
       } else {
-        queryClient.setQueryData(["chat", chatId], (old: any) => {
-          if (!old) return old;
-          return {
-            ...old,
-            questions: [...(old.questions || []), result],
-          };
-        });
+        // 自分が送った質問の場合、WebSocketイベントでキャッシュが更新されるため、ここでは何もしない
       }
     },
   });

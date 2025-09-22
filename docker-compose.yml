@@ -41,12 +41,19 @@ services:
       - COGNITO_USER_POOL_ID=${COGNITO_USER_POOL_ID}
     ports:
       - "8000:8000"
-    volumes:
-        - ./api:/app
     depends_on:
       - db
       # - 
       - broker
+    develop:
+      watch:
+        - action: sync
+          path: ./api
+          target: /app
+          ignore:
+            - Dockerfile.dev
+            - .air.toml
+            - tmp
 
   ws:
     build: 
@@ -62,11 +69,18 @@ services:
       - COGNITO_USER_POOL_ID=${COGNITO_USER_POOL_ID}
     ports:
       - "9000:9000"
-    volumes:
-        - ./ws:/app
     depends_on:
       - db
       - broker
+    develop:
+      watch:
+        - action: sync
+          path: ./ws
+          target: /app
+          ignore:
+            - Dockerfile.dev
+            - .air.toml
+            - tmp
 
   rag:
     build: 
@@ -139,7 +153,14 @@ services:
     ports:
       - "8001:8001"
     restart: always
-
+    develop:
+      watch:
+        - action: sync
+          path: ./embedding
+          target: /app
+          ignore:
+            - Dockerfile
+            - requirements.txt
 volumes:
   db_data:
   minio_data:

@@ -16,7 +16,7 @@ func NewParticipantCommandService(pr repository.ParticipantRepositoryInterface) 
 	return &ParticipantCommandService{participantRepo: pr}
 }
 
-func (s *ParticipantCommandService) CreateParticipant(participant dto.ParticipantCreateRequest, userID string) (*dto.ParticipantResponse, error) {
+func (s *ParticipantCommandService) CreateParticipant(participant dto.ParticipantCreateRequest, userID string) (string, error) {
 	var participantEntity *entity.Participant
 	if participant.Role == "ai_coach" {
 		participantEntity = dto.ParticipantCreateRequestToEntity(participant, uuid.New().String())
@@ -24,28 +24,26 @@ func (s *ParticipantCommandService) CreateParticipant(participant dto.Participan
 		participantEntity = dto.ParticipantCreateRequestToEntity(participant, userID)
 	}
 
-	createdParticipant, err := s.participantRepo.Create(participantEntity)
+	userID, err := s.participantRepo.Create(participantEntity)
 	if err != nil {
-		return nil, err
+		return "", err
 	}
 
-	participantResp := dto.ParticipantEntityToResponse(createdParticipant)
-	return &participantResp, nil
+	return userID, nil
 }
 
-func (s *ParticipantCommandService) UpdateParticipant(participantID string, participant dto.ParticipantUpdateRequest) (*dto.ParticipantResponse, error) {
+func (s *ParticipantCommandService) UpdateParticipant(participantID string, participant dto.ParticipantUpdateRequest) error {
 	participantEntity, err := s.participantRepo.FindByID(participantID)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
 	dto.ParticipantUpdateRequestToEntity(participantEntity, participant)
 
-	updatedParticipant, err := s.participantRepo.Update(participantEntity)
+	err = s.participantRepo.Update(participantEntity)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	participantResp := dto.ParticipantEntityToResponse(updatedParticipant)
-	return &participantResp, nil
+	return nil
 }

@@ -8,8 +8,19 @@ type ChatDetailResponse struct {
 	StartedAt    time.Time             `json:"started_at"`
 	LastActiveAt time.Time             `json:"last_active_at"`
 	Participants []ParticipantResponse `json:"participants"`
-	Questions    []QuestionResponse    `json:"questions"`
-	Answers      []AnswerResponse      `json:"answers"`
+	Timeline     []ChatItem            `json:"timeline"`  // 統合されたタイムライン
+}
+
+// ChatItem は質問または回答を表す
+type ChatItem struct {
+	ID            string                `json:"id"`
+	ChatID        string                `json:"chat_id"`
+	ParticipantID string                `json:"participant_id"`
+	Content       string                `json:"content"`
+	CreatedAt     time.Time             `json:"created_at"`
+	Attachments   []AttachmentResponse  `json:"attachments"`
+	Type          string                `json:"type"` // "question", "answer", "ai_answer"
+	QuestionID    *string               `json:"question_id,omitempty"` // 回答の場合のみ
 }
 
 type ChatSummaryResponse struct {
@@ -31,7 +42,7 @@ type ParticipantResponse struct {
 
 type OpponentResponse struct {
 	ID     string   `json:"id"`
-	Name   string   `json:"name"`
+	Name   string   `json:"name"`	
 	Role   string   `json:"role"`
 	IconURL *string  `json:"icon_url"`
 }

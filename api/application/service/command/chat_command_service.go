@@ -22,27 +22,16 @@ func NewChatCommandService(cr repository.ChatRepositoryInterface, pr repository.
 	return &ChatCommandService{chatRepo: cr, ParticipantRepo: pr, EventPublisher: ep, RagRequestBroker: rag, VectorStoreRepo: vsr}
 }
 
-func (s *ChatCommandService) CreateChat(chat dto.ChatCreateRequest, userID string) (*dto.ChatDetailResponse, error) {
+func (s *ChatCommandService) CreateChat(chat dto.ChatCreateRequest, userID string) (string, error) {
 	chat.ParticipantIDs = append(chat.ParticipantIDs, userID)
 	chatEntity := dto.ChatCreateRequestToEntity(chat, uuid.NewString(), time.Now())
 
-	savedChat, err := s.chatRepo.CreateChat(chatEntity)
+	chatID, err := s.chatRepo.CreateChat(chatEntity)
 	if err != nil {
-		return nil, err
+		return "", err
 	}
 
-	participants := make([]dto.ParticipantResponse, 0, len(chat.ParticipantIDs))
-
-	for _, id := range chat.ParticipantIDs {
-		p, err := s.ParticipantRepo.FindByID(id)
-		if err != nil {
-			return nil, err
-		}
-		participants = append(participants, dto.ParticipantEntityToResponse(p))
-	}
-
-	chatDetail := dto.ChatEntityToDetailResponse(savedChat, participants)
-	return &chatDetail, nil
+	return chatID, nil
 }
 
 func (s *ChatCommandService) UpdateChat(chatID string, chat dto.ChatUpdateRequest) (*dto.ChatDetailResponse, error) {
@@ -51,10 +40,8 @@ func (s *ChatCommandService) UpdateChat(chatID string, chat dto.ChatUpdateReques
 		return nil, err
 	}
 
-	// DTOの値を適用
 	dto.ChatUpdateRequestToEntity(chatEntity, chat)
 
-	// 保存
 	updatedChat, err := s.chatRepo.UpdateChat(chatEntity)
 	if err != nil {
 		return nil, err
