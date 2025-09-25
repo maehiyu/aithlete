@@ -11,6 +11,7 @@ import (
 	"api/domain/entity"
 	"api/domain/repository"
 	"context"
+	"log"
 
 	"github.com/jackc/pgx/v5/pgxpool"
 )
@@ -59,11 +60,13 @@ func (r *ParticipantRepositoryImpl) FindByIDs(participantIDs []string) ([]*entit
 
 func (r *ParticipantRepositoryImpl) Create(participant *entity.Participant) (string, error) {
 	ctx := context.Background()
+	log.Printf("Creating participant with sports: %v", participant.Sports)
 	_, err := r.conn.Exec(ctx,
 		`INSERT INTO participants (id, name, email, role, sports, icon_url) VALUES ($1, $2, $3, $4, $5, $6)`,
 		participant.ID, participant.Name, participant.Email, participant.Role, participant.Sports, participant.IconURL,
 	)
 	if err != nil {
+		log.Printf("Error creating participant: %v", err)
 		return "", err
 	}
 	return participant.ID, nil
@@ -71,13 +74,16 @@ func (r *ParticipantRepositoryImpl) Create(participant *entity.Participant) (str
 
 func (r *ParticipantRepositoryImpl) Update(participant *entity.Participant) error {
 	ctx := context.Background()
+	log.Printf("Updating participant %s with sports: %v", participant.ID, participant.Sports)
 	_, err := r.conn.Exec(ctx,
 		`UPDATE participants SET name = $2, email = $3, role = $4, sports = $5, icon_url = $6 WHERE id = $1`,
 		participant.ID, participant.Name, participant.Email, participant.Role, participant.Sports, participant.IconURL,
 	)
 	if err != nil {
+		log.Printf("Error updating participant: %v", err)
 		return err
 	}
+	log.Printf("Successfully updated participant %s", participant.ID)
 	return nil
 }
 

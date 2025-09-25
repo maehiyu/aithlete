@@ -60,12 +60,28 @@ func (s *ChatCommandService) SendMessage(chatID string, req dto.ChatItemRequest)
 		ParticipantID: req.ParticipantID,
 		Content:       req.Content,
 		CreatedAt:     createdAt,
-		Type: 		   req.Type,
+		Type:          req.Type,
 		QuestionID:    req.QuestionID,
 		Attachments:   nil,
 		TempID:        &req.TempID,
 	}
 
+	// Publish event to all participants (including self for saving)
+	allParticipantIDs, err := s.chatRepo.FindParticipantIDsByChatID(chatID)
+	if err == nil && s.EventPublisher != nil {
+		event := dto.ChatEvent{
+			ID:        uuid.NewString(),
+			ChatID:    chatID,
+			Type:      "message",
+			From:      req.ParticipantID,
+			To:        allParticipantIDs,
+			Timestamp: time.Now().Unix(),
+			Payload:   questionResponse,
+		}
+		_ = s.EventPublisher.PublishChatEvent(context.Background(), event)
+	}
+
+	// Publish event to RAG service if ai_coach exists
 	participants, err := s.getOtherParticipants(chatID, req.ParticipantID)
 	if err == nil && s.RagRequestBroker != nil {
 		for _, p := range participants {
@@ -85,23 +101,6 @@ func (s *ChatCommandService) SendMessage(chatID string, req dto.ChatItemRequest)
 		}
 	}
 
-	filtered, err := s.getOtherParticipantIDs(chatID, req.ParticipantID)
-	if err != nil {
-		return err
-	}
-
-	if s.EventPublisher != nil {
-		event := dto.ChatEvent{
-			ID:        uuid.NewString(),
-			ChatID:    chatID,
-			Type:      "message",
-			From:      req.ParticipantID,
-			To:        filtered,
-			Timestamp: time.Now().Unix(),
-			Payload:   questionResponse,
-		}
-		_ = s.EventPublisher.PublishChatEvent(context.Background(), event)
-	}
 
 	return nil
 }

@@ -1,28 +1,35 @@
 import { useChats } from '../../chat/useChat';
 import ChatListItem from '../../../components/common/ChatListItem';
-import { useNavigate } from 'react-router-dom';
+import { PageLayout, LoadingPage, ErrorPage, EmptyState, usePageState } from '../../../components/layout/PageLayout';
 
 export default function CoachChatList() {
   const { data: chats, isLoading, error } = useChats();
-  const navigate = useNavigate();
+  const pageState = usePageState(chats, isLoading, error);
+  const coachChats = chats?.filter(chat => chat.opponent.role === 'coach') || [];
 
-  const coachChats = chats?.filter(chat => chat.opponent.role === 'coach');
+  if (pageState.type === 'loading') {
+    return <LoadingPage message="コーチのチャットを読み込み中..." />;
+  }
 
-  if (isLoading) return <div>Loading...</div>;
-  if (error) return <div style={{ color: 'red' }}>Error: {error instanceof Error ? error.message : String(error)}</div>;
+  if (pageState.type === 'error') {
+    return <ErrorPage error={pageState.error} />;
+  }
 
   return (
-    <div style={{ maxWidth: 700}}>
-      <h2 className="text-xl font-bold mb-4">コーチとのチャット一覧</h2>
-      {coachChats && coachChats.length > 0 ? (
-        <ul>
+    <PageLayout title="コーチとのチャット一覧" maxWidth="2xl">
+      {/* データはあるがコーチのチャットがない場合 */}
+      {pageState.type === 'success' && coachChats.length === 0 ? (
+        <EmptyState 
+          message="コーチとのチャットはまだありません"
+          hint="コーチを探してチャットを始めましょう"
+        />
+      ) : (
+        <div className="space-y-3">
           {coachChats.map(chat => (
             <ChatListItem key={chat.id} chat={chat} />
           ))}
-        </ul>
-      ) : (
-        <div>コーチとのチャットはありません</div>
+        </div>
       )}
-    </div>
+    </PageLayout>
   );
 }

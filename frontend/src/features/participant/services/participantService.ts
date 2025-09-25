@@ -1,5 +1,5 @@
-import type { ParticipantCreateRequest, ParticipantResponse, ParticipantUpdateRequest } from "../../types";
-import { apiFetch } from "../../lib/apiClient";
+import type { ParticipantCreateRequest, ParticipantResponse, ParticipantUpdateRequest } from "../../../types";
+import { apiFetch } from "../../../lib/apiClient";
 
 
 export async function getCurrentUser(): Promise<ParticipantResponse> {

@@ -103,6 +103,15 @@ services:
       resources:
         limits:
           memory: 2G
+    develop:
+      watch:
+        - action: sync
+          path: ./rag
+          target: /app
+          ignore:
+            - Dockerfile.dev
+            - requirements.txt
+            - __pycache__
 
   db:
     image: postgres:15
@@ -128,7 +137,8 @@ services:
       - AUTHENTICATION_ANONYMOUS_ACCESS_ENABLED=true
       - PERSISTENCE_DATA_PATH=/var/lib/weaviate
       - DEFAULT_VECTORIZER_MODULE=none
-      # embeddingを自前で生成する場合はvectorizer=none
+      - ENABLE_MODULES=
+      # 単一ノード設定（クラスター無効化）
     volumes:
       - weaviate_data:/var/lib/weaviate
     healthcheck:

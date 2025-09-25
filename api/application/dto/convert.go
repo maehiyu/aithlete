@@ -35,7 +35,7 @@ func ChatEntityToDetailResponse(chat *entity.Chat, participants []entity.Partici
 			ParticipantID: q.ParticipantID,
 			Content:       q.Content,
 			CreatedAt:     q.CreatedAt,
-			Type:         "question",
+			Type:          "question",
 		})
 	}
 	for _, a := range chat.Answers {
@@ -44,7 +44,7 @@ func ChatEntityToDetailResponse(chat *entity.Chat, participants []entity.Partici
 			ParticipantID: a.ParticipantID,
 			Content:       a.Content,
 			CreatedAt:     a.CreatedAt,
-			Type:         "answer",
+			Type:          "answer",
 		})
 	}
 
@@ -57,7 +57,9 @@ func ChatEntityToDetailResponse(chat *entity.Chat, participants []entity.Partici
 		participantResponses[i] = ParticipantResponse{
 			ID:      p.ID,
 			Name:    p.Name,
+			Email:   p.Email,
 			Role:    p.Role,
+			Sports:  p.Sports,
 			IconURL: p.IconURL,
 		}
 	}
@@ -79,7 +81,9 @@ func ParticipantEntityToResponse(p *entity.Participant) *ParticipantResponse {
 	return &ParticipantResponse{
 		ID:      p.ID,
 		Name:    p.Name,
+		Email:   p.Email,
 		Role:    p.Role,
+		Sports:  p.Sports,
 		IconURL: p.IconURL,
 	}
 }

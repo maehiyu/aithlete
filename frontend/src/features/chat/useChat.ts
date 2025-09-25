@@ -77,7 +77,7 @@ export function useSendMessage(chatId: string) {
   return useMutation<void, Error, ChatItemRequest>({
     mutationFn: (data) => sendMessage(chatId, data),
     onSuccess: (result, variables) => {
-
+      queryClient.invalidateQueries({ queryKey: ["chat", chatId] });
     },
   });
 }

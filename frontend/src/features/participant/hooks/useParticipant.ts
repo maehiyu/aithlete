@@ -5,9 +5,9 @@ import {
   updateUser,
   getCurrentUser,
   createAICoach
-} from "./participantService";
-import type { ParticipantResponse, ParticipantCreateRequest, ParticipantUpdateRequest } from "../../types";
-import { fetchCoachesBySport } from "./coachService";
+} from "../services/participantService";
+import type { ParticipantResponse, ParticipantCreateRequest, ParticipantUpdateRequest } from "../../../types";
+import { fetchCoachesBySport } from "../services/coachService";
 
 export function useCurrentUser() {
   return useQuery<ParticipantResponse>({

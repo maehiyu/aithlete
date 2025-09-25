@@ -1,11 +1,12 @@
 import { useParams, useLocation } from 'react-router-dom';
 import { useChat, useSendMessage } from './useChat';
-import { useCurrentUser } from '../authentication/useParticipant';
+import { useCurrentUser } from '../participant/hooks/useParticipant';
 import { useEffect, useRef } from 'react';
 import { useState } from 'react';
 import { ChatMessageItem } from '../../components/common/ChatMessageItem';
 import { useChatEvents } from './useChatEvents';
 import ChatInputBar from './components/ChatInputBar';
+import { ChatLayout, LoadingPage, ErrorPage, usePageState } from '../../components/layout/PageLayout';
 
 export function ChatDetail() {
     const { id } = useParams<{ id: string }>();
@@ -21,6 +22,9 @@ export function ChatDetail() {
     const isFirstScroll = useRef(true);
     const [message, setMessage] = useState("");
     const sentInitialMessage = useRef(false);
+
+    // ページ状態管理
+    const pageState = usePageState(data, isLoading, error);
 
     useEffect(() => {
         if (sentInitialMessage.current) return;
@@ -57,9 +61,24 @@ export function ChatDetail() {
         }
     }, [data?.timeline]);
 
-    if (isLoading) return <div>Loading...</div>;
-    if (error) return <div style={{ color: 'red' }}>Error: {error instanceof Error ? error.message : String(error)}</div>;
-    if (!data) return <div>Not found</div>;
+    // 状態に応じたレンダリング
+    if (pageState.type === 'loading') {
+        return <LoadingPage message="チャットを読み込み中..." />;
+    }
+
+    if (pageState.type === 'error') {
+        return <ErrorPage error={pageState.error} />;
+    }
+
+    if (pageState.type === 'empty' || !data) {
+        return (
+            <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+                <div className="text-center">
+                    <div className="text-gray-500 text-sm">チャットが見つかりません</div>
+                </div>
+            </div>
+        );
+    }
 
     const handleSend = (msg: string) => {
         if (!currentUser) return;
@@ -74,8 +93,16 @@ export function ChatDetail() {
     };
 
     return (
-        <div style={{ maxWidth: 600, margin: '0 auto', paddingBottom: '64px' }}>
-            <div>
+        <ChatLayout
+            inputBar={
+                <ChatInputBar
+                    value={message}
+                    onChange={setMessage}
+                    onSend={handleSend}
+                />
+            }
+        >
+            <div className="space-y-4">
                 {timeline.map(item => (
                     <ChatMessageItem
                         key={item.id}
@@ -86,11 +113,6 @@ export function ChatDetail() {
                 ))}
                 <div ref={bottomRef} />
             </div>
-            <ChatInputBar
-                value={message}
-                onChange={setMessage}
-                onSend={handleSend}
-            />
-        </div>
+        </ChatLayout>
     );
 }

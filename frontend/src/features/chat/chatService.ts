@@ -44,6 +44,6 @@ export async function sendMessage(chatId: string, data: ChatItemRequest): Promis
 	const tempId = uuidv4();
 	await apiFetch<any>(`/chats/${chatId}/messages`, {
 		method: "POST",
-		body: toSnakeCase({data, tempId}),
+		body: toSnakeCase({ ...data, tempId }),
 	});
 }

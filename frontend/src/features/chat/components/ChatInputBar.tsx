@@ -40,7 +40,7 @@ export default function ChatInputBar({
   return (
       <>
         <div
-          className={`flex items-center gap-2 rounded-full p-3 bg-gray-300/20 gradient-border backdrop-blur fixed left-3 right-3 bottom-3 z-30 ${className}`}
+          className={`flex items-center gap-2 rounded-full p-3 bg-gray-300/20 gradient-border backdrop-blur fixed left-1/2 transform -translate-x-1/2 bottom-3 z-30 w-[calc(100%-1.5rem)] max-w-2xl ${className}`}
         >
           <button
             type="button"

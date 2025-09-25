@@ -1,44 +1,44 @@
-
 package main
 
 import (
 	"api/application/dto"
 	"api/application/service/command"
 	appquery "api/application/service/query"
+	"api/infrastructure/broker"
 	infraquery "api/infrastructure/query"
 	"api/infrastructure/repository"
 	"api/presentation/handler"
 	"api/presentation/middleware"
+	"bytes"
 	"context"
 	"log"
+	"net/http"
 	"os"
 	"strconv"
-	"bytes"
-	"net/http"
-	"api/infrastructure/broker"
+
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/redis/go-redis/v9"
 )
+
 // QAPairスキーマ作成関数
 func createWeaviateSchema() {
-       schema := `{
+	schema := `{
 	       "class": "QAPair",
 	       "vectorizer": "none",
-	       "vectorIndexConfig": {"vectorDimension": 384},
 	       "properties": [
 		       {"name": "question", "dataType": ["text"]},
 		       {"name": "answer", "dataType": ["text"]}
 	       ]
        }`
-       resp, err := http.Post("http://weaviate:8080/v1/schema", "application/json", bytes.NewBuffer([]byte(schema)))
-       if err != nil {
-	       log.Printf("failed to create Weaviate schema: %v", err)
-	       return
-       }
-       defer resp.Body.Close()
-       log.Printf("Weaviate schema creation status: %v", resp.Status)
+	resp, err := http.Post("http://weaviate:8080/v1/schema", "application/json", bytes.NewBuffer([]byte(schema)))
+	if err != nil {
+		log.Printf("failed to create Weaviate schema: %v", err)
+		return
+	}
+	defer resp.Body.Close()
+	log.Printf("Weaviate schema creation status: %v", resp.Status)
 }
 
 func main() {

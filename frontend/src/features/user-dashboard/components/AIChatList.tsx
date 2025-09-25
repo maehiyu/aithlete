@@ -1,35 +1,40 @@
 import { useEffect } from 'react';
 import { useChats } from '../../chat/useChat';
-import { Avatar } from '@mui/material';
 import ChatListItem from '../../../components/common/ChatListItem';
 import { useNavigate } from 'react-router-dom';
+import { PageLayout, LoadingPage, ErrorPage, EmptyState, usePageState } from '../../../components/layout/PageLayout';
 
 export default function AIChatList() {
   const { data: chats, isLoading, error } = useChats();
-  const navigate = useNavigate();
-
-  // コーチとのチャットのみ抽出（例: chat.type === 'coach' など、実際の型に合わせて調整）
-  const aiChats = chats?.filter(chat => chat.opponent.role === 'ai_coach');
+  const pageState = usePageState(chats, isLoading, error);
+  const aiChats = chats?.filter(chat => chat.opponent.role === 'ai_coach') || [];
 
   useEffect(() => {
     window.scrollTo(0, 0);
   }, []);
 
-  if (isLoading) return <div>Loading...</div>;
-  if (error) return <div style={{ color: 'red' }}>Error: {error instanceof Error ? error.message : String(error)}</div>;
+  if (pageState.type === 'loading') {
+    return <LoadingPage message="AIコーチのチャットを読み込み中..." />;
+  }
+
+  if (pageState.type === 'error') {
+    return <ErrorPage error={pageState.error} />;
+  }
 
   return (
-    <div style={{ maxWidth: 700, margin: '0 auto', padding: '2rem 0' }}>
-      <h2 className="text-xl font-bold mb-4">AIコーチとのチャット一覧</h2>
-      {aiChats && aiChats.length > 0 ? (
-        <ul>
+    <PageLayout title="AIコーチとのチャット一覧" maxWidth="2xl">
+      {pageState.type === 'success' && aiChats.length === 0 ? (
+        <EmptyState 
+          message="AIコーチとのチャットはまだありません"
+          hint="新しいスポーツを選択してAIコーチとチャットを始めましょう"
+        />
+      ) : (
+        <div className="space-y-3">
           {aiChats.map(chat => (
             <ChatListItem key={chat.id} chat={chat} />
           ))}
-        </ul>
-      ) : (
-        <div>コーチとのチャットはありません</div>
+        </div>
       )}
-    </div>
+    </PageLayout>
   );
 }

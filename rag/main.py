@@ -51,10 +51,10 @@ def handle_rag_event(event_json):
         chat_id = event.get("chat_id") or payload.get("chat_id")
         question_id = payload.get("id") or payload.get("id")
         opponent_id = payload.get("participant_id") 
-        temp_id = payload.get("temp_id") 
 
         event_id = str(uuid.uuid4())
         answer_id = str(uuid.uuid4())
+        answer_temp_id = str(uuid.uuid4())
 
         embed_resp = requests.post(
             EMBEDDING_API_URL,
@@ -118,7 +118,7 @@ def handle_rag_event(event_json):
                     "attachments": None,
                     "type": "ai_answer",
                     "question_id": question_id,
-                    "tempId": temp_id,
+                    "tempId": answer_temp_id,
                 }
             }
             redis_client.publish("chat_stream", json.dumps(stream_event))
@@ -140,7 +140,7 @@ def handle_rag_event(event_json):
                 "attachments": None,
                 "type": "ai_answer",
                 "question_id": question_id,
-                "tempId": temp_id,
+                "tempId": answer_temp_id,
             }
         }
         redis_client.publish("chat_events", json.dumps(chat_event))

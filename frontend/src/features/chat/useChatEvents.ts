@@ -22,12 +22,20 @@ export function useChatEvents(chatId: string) {
   useEffect(() => {
     if (!chatId) return;
     let isMounted = true;
-    let ws: WebSocket | null = null;
     (async () => {
       const token = await getIdToken();
       if (!token || !isMounted) return;
-      ws = createChatWebSocket((data: ChatEvent) => {
-        if (data.chat_id !== chatId) return;
+      const ws = createChatWebSocket((data: ChatEvent) => {
+        console.log('WebSocket received:', data); // デバッグログ追加
+        console.log('Current chatId:', chatId); // チャットID確認
+        console.log('Event chat_id:', data.chat_id); // イベントのチャットID確認
+        
+        if (data.chat_id !== chatId) {
+          console.log('ChatId mismatch - ignoring event');
+          return;
+        }
+        
+        console.log('Processing WebSocket event for chatId:', chatId);
         queryClient.setQueryData(["chat", chatId], (old: any) => {
           if (!old) return old;
             const payload = toCamelCase(data.payload);
@@ -58,7 +66,10 @@ export function useChatEvents(chatId: string) {
     })();
     return () => {
       isMounted = false;
-      if (ws) ws.close();
+      if (wsRef.current) {
+        wsRef.current.close();
+        wsRef.current = null;
+      }
     };
-  }, [chatId]);
+  }, [chatId, queryClient]);
 }
