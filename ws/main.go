@@ -198,9 +198,7 @@ func main() {
 		for msg := range ch {
 			var event ChatEvent
 			if err := json.Unmarshal([]byte(msg.Payload), &event); err == nil {
-				if event.Type != "ai_answer" {
-					hub.SendToUsers([]byte(msg.Payload), event.To)
-				}
+				hub.SendToUsers([]byte(msg.Payload), event.To)
 			}
 		}
 	}()

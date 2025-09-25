@@ -30,36 +30,28 @@ export function useChatEvents(chatId: string) {
         if (data.chat_id !== chatId) return;
         queryClient.setQueryData(["chat", chatId], (old: any) => {
           if (!old) return old;
-          if (data.type === "answer") {
             const payload = toCamelCase(data.payload);
-            return {
-              ...old,
-              answers: [...(old.answers || []), payload],
-              streamMessages: undefined,
-            };
-          }
-          if (data.type === "question") {
-            const payload = toCamelCase(data.payload);
-            // streamMessagesがあればanswersにappend
-            let newAnswers = old.answers || [];
-            if (old.streamMessages) {
-              newAnswers = [...newAnswers, old.streamMessages];
+            const tempId = payload.tempId;
+            let newTimeline = old.timeline || [];
+            if (tempId) {
+              let replaced = false;
+              newTimeline = newTimeline.map((item: { tempId?: string }) => {
+                if (item.tempId === tempId) {
+                  replaced = true;
+                  return payload;
+                }
+                return item;
+              });
+              if (!replaced) {
+                newTimeline = [...newTimeline, payload];
+              }
+            } else {
+              newTimeline = [...newTimeline, payload];
             }
             return {
               ...old,
-              questions: [...(old.questions || []), payload],
-              answers: newAnswers,
-              streamMessages: undefined,
+              timeline: [...newTimeline],
             };
-          }
-          if (data.type === "stream") {
-            const payload = toCamelCase(data.payload);
-            return {
-              ...old,
-              streamMessages: payload,
-            };
-          }
-          return old;
         });
       }, token);
       wsRef.current = ws;

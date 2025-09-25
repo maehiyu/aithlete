@@ -72,35 +72,6 @@ func ChatEntityToDetailResponse(chat *entity.Chat, participants []entity.Partici
 	}
 }
 
-func QuestionsEntityToResponse(questions []entity.Question) []QuestionResponse {
-	res := make([]QuestionResponse, len(questions))
-	for i, q := range questions {
-		res[i] = QuestionResponse{
-			ID:            q.ID,
-			ParticipantID: q.ParticipantID,
-			Content:       q.Content,
-			CreatedAt:     q.CreatedAt,
-			Attachments:   []AttachmentResponse{}, // Add mapping if needed
-		}
-	}
-	return res
-}
-
-func AnswersEntityToResponse(answers []entity.Answer) []AnswerResponse {
-	res := make([]AnswerResponse, len(answers))
-	for i, a := range answers {
-		res[i] = AnswerResponse{
-			ID:            a.ID,
-			QuestionID:    a.QuestionID,
-			ParticipantID: a.ParticipantID,
-			Content:       a.Content,
-			CreatedAt:     a.CreatedAt,
-			Attachments:   []AttachmentResponse{}, // Add mapping if needed
-		}
-	}
-	return res
-}
-
 func ParticipantEntityToResponse(p *entity.Participant) *ParticipantResponse {
 	if p == nil {
 		return nil
@@ -159,30 +130,7 @@ func AnswerCreateRequestToEntity(dto AnswerCreateRequest, id string, chatId stri
 	}
 }
 
-func QuestionEntityToResponse(q *entity.Question) QuestionResponse {
-	return QuestionResponse{
-		ID:            q.ID,
-		ChatID:        q.ChatID,
-		ParticipantID: q.ParticipantID,
-		Content:       q.Content,
-		CreatedAt:     q.CreatedAt,
-		Attachments:   []AttachmentResponse{}, // Add mapping if needed
-	}
-}
-
-func AnswerEntityToResponse(a *entity.Answer) AnswerResponse {
-	return AnswerResponse{
-		ID:            a.ID,
-		ChatID:        a.ChatID,
-		QuestionID:    a.QuestionID,
-		ParticipantID: a.ParticipantID,
-		Content:       a.Content,
-		CreatedAt:     a.CreatedAt,
-		Attachments:   []AttachmentResponse{}, // Add mapping if needed
-	}
-}
-
-func QuestionResponseToEntity(resp QuestionResponse) *entity.Question {
+func ChatItemToQuestion(resp ChatItem) *entity.Question {
 	return &entity.Question{
 		ID:            resp.ID,
 		ChatID:        resp.ChatID,
@@ -193,11 +141,15 @@ func QuestionResponseToEntity(resp QuestionResponse) *entity.Question {
 	}
 }
 
-func AnswerResponseToEntity(resp AnswerResponse) *entity.Answer {
+func ChatItemToAnswer(resp ChatItem) *entity.Answer {
+	var questionID string
+	if resp.QuestionID != nil {
+		questionID = *resp.QuestionID
+	}
 	return &entity.Answer{
 		ID:            resp.ID,
 		ChatID:        resp.ChatID,
-		QuestionID:    resp.QuestionID,
+		QuestionID:    questionID,
 		ParticipantID: resp.ParticipantID,
 		Content:       resp.Content,
 		CreatedAt:     resp.CreatedAt,

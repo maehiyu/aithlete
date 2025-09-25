@@ -1,9 +1,9 @@
 import { Avatar } from '@mui/material';
-import type { QuestionResponse, AnswerResponse, ParticipantResponse } from '../../types';
+import type { ParticipantResponse, ChatItem } from '../../types';
 import { formatToMinute } from '../../utils/formatToMinute';
 
 interface ChatMessageItemProps {
-  item: QuestionResponse | AnswerResponse;
+  item: ChatItem;
   currentUserId: string;
   participants: ParticipantResponse[];
 }

@@ -67,12 +67,12 @@ func HandleCreateParticipant(participantCommandService *command.ParticipantComma
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
 		}
-		participant, err := participantCommandService.CreateParticipant(req, userID.(string))
+		id, err := participantCommandService.CreateParticipant(req, userID.(string))
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 		}
-		c.JSON(http.StatusOK, participant)
+		c.JSON(http.StatusOK, gin.H{"id": id})
 	}
 }
 
@@ -84,12 +84,12 @@ func HandleUpdateParticipant(participantCommandService *command.ParticipantComma
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
 		}
-		participant, err := participantCommandService.UpdateParticipant(participantID, req)
+		err := participantCommandService.UpdateParticipant(participantID, req)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 		}
-		c.JSON(http.StatusOK, participant)
+		c.JSON(http.StatusOK, nil)
 	}
 }
 

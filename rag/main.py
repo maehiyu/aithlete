@@ -46,10 +46,12 @@ def handle_rag_event(event_json):
             participant_id = to_value[0] if to_value else None
         else:
             participant_id = to_value
+        print(payload, flush=True)
         question = payload.get("content") or payload.get("question")
         chat_id = event.get("chat_id") or payload.get("chat_id")
         question_id = payload.get("id") or payload.get("id")
-        opponent_id = payload.get("participant_id") or payload.get("participant_id")
+        opponent_id = payload.get("participant_id") 
+        temp_id = payload.get("temp_id") 
 
         event_id = str(uuid.uuid4())
         answer_id = str(uuid.uuid4())
@@ -110,11 +112,13 @@ def handle_rag_event(event_json):
                 "payload": {
                     "id": answer_id,
                     "chat_id": chat_id,
-                    "question_id": question_id,
                     "participant_id": participant_id,
                     "content": answer,
                     "created_at": datetime.datetime.utcnow().isoformat() + 'Z',
-                    "attachments": None
+                    "attachments": None,
+                    "type": "ai_answer",
+                    "question_id": question_id,
+                    "tempId": temp_id,
                 }
             }
             redis_client.publish("chat_stream", json.dumps(stream_event))
@@ -123,18 +127,20 @@ def handle_rag_event(event_json):
         chat_event = {
             "id": event_id,
             "chat_id": chat_id,
-            "type": "ai_answer",
+            "type": "message",
             "from": participant_id,
             "to": [opponent_id] if opponent_id is not None else [],
             "timestamp": int(time.time()),
             "payload": {
                 "id": answer_id,
                 "chat_id": chat_id,
-                "question_id": question_id,
                 "participant_id": participant_id,
                 "content": answer,
                 "created_at": datetime.datetime.utcnow().isoformat() + 'Z',
-                "attachments": None
+                "attachments": None,
+                "type": "ai_answer",
+                "question_id": question_id,
+                "tempId": temp_id,
             }
         }
         redis_client.publish("chat_events", json.dumps(chat_event))

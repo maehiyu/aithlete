@@ -11,3 +11,4 @@ safetensors
 numpy
 typing-extensions
 redis
+watchdog

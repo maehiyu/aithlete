@@ -5,17 +5,17 @@ import {
   createChat,
   updateChat,
   deleteChat,
-  sendQuestion,
-  sendAnswer
+  sendMessage
 } from "./chatService";
-import type { ChatDetailResponse, ChatSummaryResponse, ChatUpdateRequest, ChatCreateRequest } from "../../types";
+import type { ChatDetailResponse, ChatItemRequest, ChatSummaryResponse, ChatUpdateRequest} from "../../types";
+import { send } from "process";
 
 
 export function useChats() {
   return useQuery<ChatSummaryResponse[]>({
     queryKey: ["chats"],
     queryFn: fetchChats,
-    staleTime: 1000 * 60 * 5, // 5分
+    staleTime: 1000 * 60 * 5, 
     refetchOnWindowFocus: false,
   });
 }
@@ -25,49 +25,35 @@ export function useChat(chatId: string) {
     queryKey: ["chat", chatId],
     queryFn: () => fetchChat(chatId),
     enabled: !!chatId,
-    staleTime: 1000 * 60 * 5, // 5分
+    staleTime: 1000 * 60 * 5, 
     refetchOnWindowFocus: false,
   });
 }
 
 export function useCreateChat() {
   const queryClient = useQueryClient();
-  return useMutation<
-    ChatDetailResponse,
-    Error,
-    string[]
-  >({
+  return useMutation<string, Error, string[]>({
     mutationFn: (opponentIds) => createChat({ participantIds: opponentIds }),
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ["chats"] });
-      queryClient.setQueryData(["chat", data.id], data);
     },
   });
 }
 
 export function useCreateChatWithQuestion() {
   const queryClient = useQueryClient();
-  return useMutation<
-    ChatDetailResponse,
-    Error,
-    { opponentIds: string[]; questions: string[] }
-  >({
+  return useMutation<string,Error, { opponentIds: string[]; questions: string[] }>({
     mutationFn: ({ opponentIds, questions}) =>
       createChat({ participantIds: opponentIds, questions: questions }),
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ["chats"] });
-      queryClient.setQueryData(["chat", data.id], data);
     },
   });
 }
 
 export function useUpdateChat() {
   const queryClient = useQueryClient();
-  return useMutation<
-    ChatDetailResponse, // mutationFnの戻り値
-    Error,              // エラー型
-    { chatId: string; data: ChatUpdateRequest } // mutationFnの引数型
-  >({
+  return useMutation<void, Error, { chatId: string; data: ChatUpdateRequest }>({
     mutationFn: ({ chatId, data }) => updateChat(chatId, data),
     onSuccess: (_data, variables) => {
       queryClient.invalidateQueries({ queryKey: ["chat", variables.chatId] });
@@ -78,11 +64,7 @@ export function useUpdateChat() {
 
 export function useDeleteChat() {
   const queryClient = useQueryClient();
-  return useMutation<
-    void,    // mutationFnの戻り値
-    Error,   // エラー型
-    string   // mutationFnの引数型（chatId）
-  >({
+  return useMutation<void, Error, string>({
     mutationFn: (chatId) => deleteChat(chatId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["chats"] });
@@ -90,43 +72,12 @@ export function useDeleteChat() {
   });
 }
 
-export function useSendAnswer(chatId: string) {
+export function useSendMessage(chatId: string) {
   const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: (data: { content: string; participantId: string; questionId: string }) => sendAnswer(chatId, data),
-    onSuccess: () => {
-      // WebSocketイベントでキャッシュが更新されるため、ここでは何もしない
-    },
-  });
-}
-
-export function useSendQuestion(chatId: string) {
-  const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: (data: { content: string; participantId: string }) => sendQuestion(chatId, data),
-    onSuccess: () => {
-      // WebSocketイベントでキャッシュが更新されるため、ここでは何もしない
-    },
-  });
-}
-
-export function useSendMessage(chatId: string, role: string, questionId?: string) {
-  const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: (data: { content: string; participantId: string, questionId?: string }) => {
-      if (role === "coach") {
-        if (!questionId) throw new Error("questionId is required for answer");
-        return sendAnswer(chatId, { content: data.content, participantId: data.participantId, questionId });
-      } else {
-        return sendQuestion(chatId, { content: data.content, participantId: data.participantId });
-      }
-    },
+  return useMutation<void, Error, ChatItemRequest>({
+    mutationFn: (data) => sendMessage(chatId, data),
     onSuccess: (result, variables) => {
-      if (role === "coach") {
-        // 自分が送った回答の場合、WebSocketイベントでキャッシュが更新されるため、ここでは何もしない
-      } else {
-        // 自分が送った質問の場合、WebSocketイベントでキャッシュが更新されるため、ここでは何もしない
-      }
+
     },
   });
 }

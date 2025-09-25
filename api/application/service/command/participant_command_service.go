@@ -24,12 +24,12 @@ func (s *ParticipantCommandService) CreateParticipant(participant dto.Participan
 		participantEntity = dto.ParticipantCreateRequestToEntity(participant, userID)
 	}
 
-	userID, err := s.participantRepo.Create(participantEntity)
+	id, err := s.participantRepo.Create(participantEntity)
 	if err != nil {
 		return "", err
 	}
 
-	return userID, nil
+	return id, nil
 }
 
 func (s *ParticipantCommandService) UpdateParticipant(participantID string, participant dto.ParticipantUpdateRequest) error {

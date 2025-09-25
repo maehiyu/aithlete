@@ -1,7 +1,8 @@
 FROM python:3.11-slim
 WORKDIR /app
 COPY . .
-RUN pip install --no-cache-dir -r requirements.txt
+RUN pip install --no-cache-dir -r requirements.txt watchdog
 
 EXPOSE 9200
-CMD ["python", "main.py"]
+# ホットリロード: watchdogでmain.py変更時に再起動
+CMD ["watchmedo", "auto-restart", "--directory=.", "--pattern=main.py", "--recursive", "--", "python", "main.py"]

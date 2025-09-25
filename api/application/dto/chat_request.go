@@ -36,3 +36,10 @@ type AnswerCreateRequest struct {
 	ParticipantID string `json:"participant_id"`
 	Content       string `json:"content"`
 }
+type ChatItemRequest struct {
+	ParticipantID string `json:"participant_id"`
+	QuestionID   *string `json:"question_id,omitempty"` 
+	Content       string `json:"content"`
+	Type          string `json:"type"` // "question", "answer", "ai_answer"
+	TempID        string `json:"temp_id"`
+}

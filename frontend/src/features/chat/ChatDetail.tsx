@@ -3,7 +3,6 @@ import { useChat, useSendMessage } from './useChat';
 import { useCurrentUser } from '../authentication/useParticipant';
 import { useEffect, useRef } from 'react';
 import { useState } from 'react';
-import { useChatTimeline } from './useChatTimeline';
 import { ChatMessageItem } from '../../components/common/ChatMessageItem';
 import { useChatEvents } from './useChatEvents';
 import ChatInputBar from './components/ChatInputBar';
@@ -13,8 +12,10 @@ export function ChatDetail() {
     const location = useLocation();
     const { data, isLoading, error } = useChat(id ?? "");
     const { data: currentUser } = useCurrentUser();
-    const latestQuestionId = data?.questions[data?.questions.length - 1]?.id;
-    const sendMessage = useSendMessage(id ?? "", currentUser?.role ?? "", latestQuestionId);
+    const timeline = data?.timeline || [];
+    const latestQuestion = timeline.slice().reverse().find(item => item.type === 'question');
+    const latestQuestionId = latestQuestion?.id;
+    const sendMessage = useSendMessage(id ?? "");
     useChatEvents(id ?? "");
     const bottomRef = useRef<HTMLDivElement | null>(null);
     const isFirstScroll = useRef(true);
@@ -25,7 +26,12 @@ export function ChatDetail() {
         if (sentInitialMessage.current) return;
         const initial = location.state?.initialMessage;
         if (initial && currentUser) {
-            sendMessage.mutate({ content: initial, participantId: currentUser.id });
+            sendMessage.mutate({
+                content: initial,
+                participantId: currentUser.id,
+                questionId: latestQuestionId,
+                type: "question",
+            });
             sentInitialMessage.current = true;
             if (location.state?.initialMessage) {
                 window.history.replaceState(
@@ -49,12 +55,7 @@ export function ChatDetail() {
                 bottomRef.current.scrollIntoView({ behavior: "smooth" });
             }
         }
-    }, [data?.questions, data?.answers, data?.streamMessages]);
-
-    const timeline = useChatTimeline(data?.questions, [
-        ...(data?.answers || []),
-        ...(data?.streamMessages ? [data.streamMessages] : [])
-    ]);
+    }, [data?.timeline]);
 
     if (isLoading) return <div>Loading...</div>;
     if (error) return <div style={{ color: 'red' }}>Error: {error instanceof Error ? error.message : String(error)}</div>;
@@ -62,10 +63,12 @@ export function ChatDetail() {
 
     const handleSend = (msg: string) => {
         if (!currentUser) return;
+        const type = currentUser.role === "coach" ? "answer" : "question";
         sendMessage.mutate({
             content: msg,
             participantId: currentUser.id,
             questionId: latestQuestionId,
+            type,
         });
         setMessage("");
     };

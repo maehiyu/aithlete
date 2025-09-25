@@ -52,28 +52,39 @@ export type AttachmentResponse = {
 	url: string;
 	pose?: PoseDataResponse | null;
 };
-export type AnswerResponse = {
+
+export type ChatItem = {
 	id: string;
-	questionId: string;
+	chatId: string;
 	participantId: string;
 	content: string;
-	attachments: AttachmentResponse[];
 	createdAt: string;
+	attachments: AttachmentResponse[];
+	type: "question" | "answer" | "ai_answer";
+	questionId?: string | null;
+	status?: MessageStatus;
+	tempId?: string;
 };
-export type QuestionResponse = {
-	id: string;
+
+export type ChatItemRequest = {
 	participantId: string;
+	questionId?: string;
 	content: string;
-	attachments: AttachmentResponse[];
-	createdAt: string;
+	type: "question" | "answer" | "ai_answer";
+	tempId?: string;
+}
+
+export type MessageStatus = "sending" | "sent" | "failed";
+
+export type WithStatus<T> = T & {
+	status: MessageStatus;
+	tempId?: string;
 };
 export type ChatDetailResponse = {
 	id: string;
 	title?: string | null;
 	participants: ParticipantResponse[];
-	questions: QuestionResponse[];
-	answers: AnswerResponse[];
-	streamMessages?: AnswerResponse;
+	timeline: ChatItem[];
 	startedAt: string;
 	lastActiveAt: string;
 };

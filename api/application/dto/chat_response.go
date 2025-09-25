@@ -11,18 +11,6 @@ type ChatDetailResponse struct {
 	Timeline     []ChatItem            `json:"timeline"`  // 統合されたタイムライン
 }
 
-// ChatItem は質問または回答を表す
-type ChatItem struct {
-	ID            string                `json:"id"`
-	ChatID        string                `json:"chat_id"`
-	ParticipantID string                `json:"participant_id"`
-	Content       string                `json:"content"`
-	CreatedAt     time.Time             `json:"created_at"`
-	Attachments   []AttachmentResponse  `json:"attachments"`
-	Type          string                `json:"type"` // "question", "answer", "ai_answer"
-	QuestionID    *string               `json:"question_id,omitempty"` // 回答の場合のみ
-}
-
 type ChatSummaryResponse struct {
 	ID           string    `json:"id"`
 	Title        *string   `json:"title"`
@@ -41,33 +29,26 @@ type ParticipantResponse struct {
 }
 
 type OpponentResponse struct {
-	ID     string   `json:"id"`
-	Name   string   `json:"name"`	
-	Role   string   `json:"role"`
+	ID       string   `json:"id"`
+	Name     string   `json:"name"`
+	Role     string   `json:"role"`
 	IconURL *string  `json:"icon_url"`
 }
 
-type QuestionResponse struct {
-	ID            string    `json:"id"`
-	ChatID 		  string	`json:"chat_id"`
-	ParticipantID string    `json:"participant_id"`
-	Content       string    `json:"content"`
-	CreatedAt     time.Time `json:"created_at"`
-	Attachments   []AttachmentResponse `json:"attachments"`
-}
-
-type AnswerResponse struct {
-	ID            string    `json:"id"`
-	ChatID 		  string	`json:"chat_id"`
-	QuestionID    string    `json:"question_id"`
-	ParticipantID string    `json:"participant_id"`
-	Content       string    `json:"content"`
-	CreatedAt     time.Time `json:"created_at"`
-	Attachments   []AttachmentResponse `json:"attachments"`
-}
+type ChatItem struct {
+	ID             string    `json:"id"`
+	ChatID         string    `json:"chat_id"`
+	QuestionID    *string   `json:"question_id,omitempty"` // 回答の場合のみ
+	ParticipantID  string    `json:"participant_id"`
+	Content        string    `json:"content"`
+	CreatedAt      time.Time `json:"created_at"`
+	Type           string    `json:"type"` // "question", "answer", "ai_answer"
+	Attachments    []AttachmentResponse `json:"attachments"`
+	TempID        *string    `json:"temp_id"`
+};
 
 type AttachmentResponse struct {
-	ID   string  `json:"id"`
-	Type string  `json:"type"`
+	ID    string  `json:"id"`
+	Type  string  `json:"type"`
 	URL  *string `json:"url"`
 }

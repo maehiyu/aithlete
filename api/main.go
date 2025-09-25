@@ -93,7 +93,7 @@ func main() {
 	chatQuery := infraquery.NewChatQuery(pool)
 	participantQuery := infraquery.NewParticipantQuery(pool)
 
-	chatQueryService := appquery.NewChatQueryService(chatQuery)
+	chatQueryService := appquery.NewChatQueryService(chatQuery, participantQuery)
 	participantQueryService := appquery.NewParticipantQueryService(participantQuery)
 
 	vectorStoreRepo := repository.NewVectorStoreRepository(
@@ -111,8 +111,7 @@ func main() {
 	}
 	participantCommandService := command.NewParticipantCommandService(participantRepository)
 
-	r.POST("/chats/:id/questions", handler.HandleSendQuestion(chatCommandService))
-	r.POST("/chats/:id/answers", handler.HandleSendAnswer(chatCommandService))
+	r.POST("/chats/:id/messages", handler.HandleSendMessage(chatCommandService))
 	r.GET("/chats/:id", handler.HandleGetChat(chatQueryService))
 	r.PUT("/chats/:id", handler.HandleUpdateChat(chatCommandService))
 	r.GET("/chats", handler.HandleGetChats(chatQueryService))

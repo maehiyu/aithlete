@@ -14,11 +14,11 @@ export function ChatPage() {
     const handleCreateAIChat = async (message: string) => {
         if (!currentUser) return;
         try {
-            const aiCoach = await createAICoachMutation.mutateAsync(currentUser.sports);
-            const chat = await createChatMutation.mutateAsync([aiCoach.id]);
+            const aiCoachId = await createAICoachMutation.mutateAsync(currentUser.sports);
+            const chatId = await createChatMutation.mutateAsync([aiCoachId]);
             setMessage("");
 
-            navigate(`/chats/${chat.id}`, { state: { initialMessage: message } });
+            navigate(`/chats/${chatId}`, { state: { initialMessage: message } });
         } catch (e) {
 
         }

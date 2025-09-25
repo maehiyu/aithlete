@@ -1,3 +1,4 @@
+//go:generate mockgen -source=broker_interface.go -destination=mocks/mock_chat_event_broker.go -package=mocks ChatEventBroker
 package broker
 
 import (

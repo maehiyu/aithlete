@@ -53,16 +53,16 @@ func NewChatRepository(conn *pgxpool.Pool) *ChatRepositoryImpl {
 	return &ChatRepositoryImpl{conn: conn}
 }
 
-func (r *ChatRepositoryImpl) CreateChat(chat *entity.Chat) (*entity.Chat, error) {
+func (r *ChatRepositoryImpl) CreateChat(chat *entity.Chat) (string, error) {
 	ctx := context.Background()
 	conn, err := r.conn.Acquire(ctx)
 	if err != nil {
-		return nil, err
+		return "", err
 	}
 	defer conn.Release()
 	tx, err := conn.Begin(ctx)
 	if err != nil {
-		return nil, err
+		return "", err
 	}
 	defer func() {
 		if err != nil {
@@ -76,7 +76,7 @@ func (r *ChatRepositoryImpl) CreateChat(chat *entity.Chat) (*entity.Chat, error)
 		chat.ID, chat.StartedAt, chat.LastActiveAt, chat.Title, chat.ParticipantIDs,
 	)
 	if err != nil {
-		return nil, err
+		return "", err
 	}
 	// Questions, Answers, Attachments, PoseDataもInsert
 	for _, q := range chat.Questions {
@@ -85,7 +85,7 @@ func (r *ChatRepositoryImpl) CreateChat(chat *entity.Chat) (*entity.Chat, error)
 			q.ID, q.ChatID, q.ParticipantID, q.Content, q.CreatedAt,
 		)
 		if err != nil {
-			return nil, err
+			return "", err
 		}
 		for _, a := range q.Attachments {
 			_, err = tx.Exec(ctx,
@@ -93,7 +93,7 @@ func (r *ChatRepositoryImpl) CreateChat(chat *entity.Chat) (*entity.Chat, error)
 				a.ID, a.Type, a.URL, a.Thumbnail, a.PoseID, a.Meta, a.OriginalID, a.QuestionID, a.AnswerID,
 			)
 			if err != nil {
-				return nil, err
+				return "", err
 			}
 		}
 	}
@@ -103,7 +103,7 @@ func (r *ChatRepositoryImpl) CreateChat(chat *entity.Chat) (*entity.Chat, error)
 			ans.ID, ans.ChatID, ans.QuestionID, ans.ParticipantID, ans.Content, ans.CreatedAt,
 		)
 		if err != nil {
-			return nil, err
+			return "", err
 		}
 		for _, a := range ans.Attachments {
 			_, err = tx.Exec(ctx,
@@ -111,14 +111,14 @@ func (r *ChatRepositoryImpl) CreateChat(chat *entity.Chat) (*entity.Chat, error)
 				a.ID, a.Type, a.URL, a.Thumbnail, a.PoseID, a.Meta, a.OriginalID, a.QuestionID, a.AnswerID,
 			)
 			if err != nil {
-				return nil, err
+				return "", err
 			}
 		}
 	}
 	if err = tx.Commit(ctx); err != nil {
-		return nil, err
+		return "", err
 	}
-	return chat, nil
+	return chat.ID, nil
 }
 
 func (r *ChatRepositoryImpl) FindChatByID(chatId string) (*entity.Chat, error) {
@@ -206,16 +206,16 @@ func (r *ChatRepositoryImpl) FindChatByID(chatId string) (*entity.Chat, error) {
 	return &chat, nil
 }
 
-func (r *ChatRepositoryImpl) UpdateChat(chat *entity.Chat) (*entity.Chat, error) {
+func (r *ChatRepositoryImpl) UpdateChat(chat *entity.Chat) error {
 	ctx := context.Background()
 	conn, err := r.conn.Acquire(ctx)
 	if err != nil {
-		return nil, err
+		return err
 	}
 	defer conn.Release()
 	tx, err := conn.Begin(ctx)
 	if err != nil {
-		return nil, err
+		return err
 	}
 	defer func() {
 		if err != nil {
@@ -228,7 +228,7 @@ func (r *ChatRepositoryImpl) UpdateChat(chat *entity.Chat) (*entity.Chat, error)
 		chat.ID, chat.StartedAt, chat.LastActiveAt, chat.Title, chat.ParticipantIDs,
 	)
 	if err != nil {
-		return nil, err
+		return err
 	}
 	// Questions, Answers, Attachments, PoseDataもUpdate/Upsert
 	for _, q := range chat.Questions {
@@ -238,7 +238,7 @@ func (r *ChatRepositoryImpl) UpdateChat(chat *entity.Chat) (*entity.Chat, error)
 			q.ID, q.ChatID, q.ParticipantID, q.Content, q.CreatedAt,
 		)
 		if err != nil {
-			return nil, err
+			return err
 		}
 		for _, a := range q.Attachments {
 			_, err = tx.Exec(ctx,
@@ -247,7 +247,7 @@ func (r *ChatRepositoryImpl) UpdateChat(chat *entity.Chat) (*entity.Chat, error)
 				a.ID, a.Type, a.URL, a.Thumbnail, a.PoseID, a.Meta, a.OriginalID, a.QuestionID, a.AnswerID,
 			)
 			if err != nil {
-				return nil, err
+				return err
 			}
 		}
 	}
@@ -258,7 +258,7 @@ func (r *ChatRepositoryImpl) UpdateChat(chat *entity.Chat) (*entity.Chat, error)
 			ans.ID, ans.ChatID, ans.QuestionID, ans.ParticipantID, ans.Content, ans.CreatedAt,
 		)
 		if err != nil {
-			return nil, err
+			return err
 		}
 		for _, a := range ans.Attachments {
 			_, err = tx.Exec(ctx,
@@ -267,15 +267,15 @@ func (r *ChatRepositoryImpl) UpdateChat(chat *entity.Chat) (*entity.Chat, error)
 				a.ID, a.Type, a.URL, a.Thumbnail, a.PoseID, a.Meta, a.OriginalID, a.QuestionID, a.AnswerID,
 			)
 			if err != nil {
-				return nil, err
+				return err
 			}
 		}
 	}
 	// PoseDataはAttachment経由で管理するため、ここではUpsertしない
 	if err = tx.Commit(ctx); err != nil {
-		return nil, err
+		return err
 	}
-	return chat, nil
+	return nil
 }
 
 func (r *ChatRepositoryImpl) AddQuestion(chatId string, question *entity.Question) error {
@@ -361,7 +361,7 @@ func (r *ChatRepositoryImpl) AddAnswer(chatId string, answer *entity.Answer) err
 	return err
 }
 
-func (r *ChatRepositoryImpl) GetParticipantIDsByChatID(chatId string) ([]string, error) {
+func (r *ChatRepositoryImpl) FindParticipantIDsByChatID(chatId string) ([]string, error) {
 	ctx := context.Background()
 	var participantIDs []string
 	row := r.conn.QueryRow(ctx, `SELECT participant_ids FROM chats WHERE id = $1`, chatId)

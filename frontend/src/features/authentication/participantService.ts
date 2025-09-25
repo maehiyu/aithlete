@@ -10,29 +10,31 @@ export async function fetchParticipant(participantId: string): Promise<Participa
   return apiFetch<ParticipantResponse>(`/participants/${participantId}`);
 }
 
-export async function createUser(data: ParticipantCreateRequest): Promise<ParticipantResponse> {
-  return apiFetch<ParticipantResponse>("/participants", {
+export async function createUser(data: ParticipantCreateRequest): Promise<string> {
+  const res = await apiFetch<ParticipantResponse>("/participants", {
     method: "POST",
     body: data,
   });
+  return res.id;
 }
 
-export async function updateUser(participantId: string, data: ParticipantUpdateRequest): Promise<ParticipantResponse> {
-  return apiFetch<ParticipantResponse>(`/participants/${participantId}`, {
+export async function updateUser(participantId: string, data: ParticipantUpdateRequest): Promise<void> {
+  await apiFetch<ParticipantResponse>(`/participants/${participantId}`, {
     method: "PUT",
     body: data,
   });
 }
 
-export async function createAICoach(sports: string[]): Promise<ParticipantResponse> {
+export async function createAICoach(sports: string[]): Promise<string> {
   const req: ParticipantCreateRequest = {
     name: 'AIコーチ',
     role: 'ai_coach',
     sports,
     email: '',
   };
-  return apiFetch<ParticipantResponse>("/participants", {
+  const res = await apiFetch<ParticipantResponse>("/participants", {
     method: "POST",
     body: req,
   });
+  return res.id;
 }

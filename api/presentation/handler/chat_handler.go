@@ -60,12 +60,12 @@ func HandleCreateChat(chatCommandService *command.ChatCommandService) gin.Handle
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
 		}
-		chat, err := chatCommandService.CreateChat(req, userID.(string))
+		chatID, err := chatCommandService.CreateChat(req, userID.(string))
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 		}
-		c.JSON(http.StatusCreated, chat)
+		c.JSON(http.StatusCreated, gin.H{"id": chatID})
 	}
 }
 
@@ -77,48 +77,29 @@ func HandleUpdateChat(chatCommandService *command.ChatCommandService) gin.Handle
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
 		}
-		chat, err := chatCommandService.UpdateChat(chatID, req)
+		err := chatCommandService.UpdateChat(chatID, req)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 		}
-		c.JSON(http.StatusOK, chat)
+		c.JSON(http.StatusNoContent, nil)
 	}
 }
 
-func HandleSendQuestion(chatCommandService *command.ChatCommandService) gin.HandlerFunc {
+func HandleSendMessage(chatCommandService *command.ChatCommandService) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		chatID := c.Param("id")
-		token := c.GetHeader("Authorization")
-		var req dto.QuestionCreateRequest
+		var req dto.ChatItemRequest
 		if err := c.ShouldBindJSON(&req); err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
 		}
 
-		question, err := chatCommandService.SendQuestion(chatID, req, token)
+		err := chatCommandService.SendMessage(chatID, req)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 		}
-		c.JSON(http.StatusCreated, question)
-	}
-}
-
-func HandleSendAnswer(chatCommandService *command.ChatCommandService) gin.HandlerFunc {
-	return func(c *gin.Context) {
-		chatID := c.Param("id")
-		var req dto.AnswerCreateRequest
-		if err := c.ShouldBindJSON(&req); err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-			return
-		}
-
-		answer, err := chatCommandService.SendAnswer(chatID, req)
-		if err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-			return
-		}
-		c.JSON(http.StatusCreated, answer)
+		c.JSON(http.StatusCreated, nil)
 	}
 }

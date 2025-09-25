@@ -11,7 +11,7 @@ import { fetchCoachesBySport } from "./coachService";
 
 export function useCurrentUser() {
   return useQuery<ParticipantResponse>({
-    queryKey: ['user', 'me'],
+    queryKey: ['participant', 'me'],
     queryFn: getCurrentUser,
     staleTime: 5 * 60 * 1000, // 5分キャッシュ
     refetchOnWindowFocus: false,
@@ -39,28 +39,26 @@ export function useCoachesBySport(sport: string) {
 
 export function useCreateUser() {
   const queryClient = useQueryClient();
-  return useMutation<ParticipantResponse, Error, ParticipantCreateRequest>({
-    mutationFn: createUser,
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['user', 'me'] }); 
-      queryClient.invalidateQueries({ queryKey: ["participants"] });
+  return useMutation<string, Error, ParticipantCreateRequest>({
+    mutationFn: (participantData: ParticipantCreateRequest) => {
+      return createUser(participantData);
     },
   });
 }
 
 export function useUpdateUser() {
   const queryClient = useQueryClient();
-  return useMutation<ParticipantResponse, Error, { participantId: string; data: ParticipantUpdateRequest }>({
+  return useMutation<void, Error, { participantId: string; data: ParticipantUpdateRequest }>({
     mutationFn: ({ participantId, data }) => updateUser(participantId, data),
     onSuccess: (_data, variables) => {
-      queryClient.invalidateQueries({ queryKey: ["user", variables.participantId] });
-      queryClient.invalidateQueries({ queryKey: ["users"] });
+      queryClient.invalidateQueries({ queryKey: ["participant", variables.participantId] });
+      queryClient.invalidateQueries({ queryKey: ["participants"] });
     },
   });
 }
 
 export function useCreateAICoach() {
-  return useMutation<ParticipantResponse, Error, string[]>({
-    mutationFn: createAICoach,
+  return useMutation<string, Error, string[]>({
+    mutationFn: (sports: string[]) => createAICoach(sports),
   });
 }
