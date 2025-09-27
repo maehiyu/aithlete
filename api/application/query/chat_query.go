@@ -4,9 +4,10 @@ package query
 import (
 	"api/application/dto"
 	"api/domain/entity"
+	"context"
 )
 
 type ChatQueryInterface interface {
-	FindChatsByUserID(userID string) ([]dto.ChatSummaryResponse, error)
-	FindChatByID(chatID string) (*entity.Chat, error)
+	FindChatsByUserID(ctx context.Context, userID string) ([]dto.ChatSummaryResponse, error)
+	FindChatByID(ctx context.Context, chatID string) (*entity.Chat, error)
 }

@@ -22,6 +22,7 @@ func setupTestRepositoryPool(t *testing.T) *pgxpool.Pool {
 }
 
 func TestChatRepository_CreateAndFind(t *testing.T) {
+	ctx := context.Background()
 	pool := setupTestRepositoryPool(t)
 	defer pool.Close()
 	repository := repo.NewChatRepository(pool)
@@ -31,7 +32,7 @@ func TestChatRepository_CreateAndFind(t *testing.T) {
 	questionID := "q1"
 	answerID := "a1"
 
-	found, err := repository.FindChatByID(chatID)
+	found, err := repository.FindChatByID(ctx, chatID)
 	if err != nil {
 		t.Fatalf("FindChatByID failed: %v", err)
 	}
@@ -67,24 +68,25 @@ func TestChatRepository_CreateAndFind(t *testing.T) {
 }
 
 func TestChatRepository_UpdateChat(t *testing.T) {
+	ctx := context.Background()
 	pool := setupTestRepositoryPool(t)
 	defer pool.Close()
 	repository := repo.NewChatRepository(pool)
 
 	chatID := "chat1"
-	found, err := repository.FindChatByID(chatID)
+	found, err := repository.FindChatByID(ctx, chatID)
 	if err != nil {
 		t.Fatalf("FindChatByID failed: %v", err)
 	}
 
 	title := "updated title"
 	found.Title = &title
-	err = repository.UpdateChat(found)
+	err = repository.UpdateChat(ctx, found)
 	if err != nil {
 		t.Fatalf("UpdateChat failed: %v", err)
 	}
 
 	origTitle := "テストチャット"
 	found.Title = &origTitle
-	_ = repository.UpdateChat(found)
+	_ = repository.UpdateChat(ctx, found)
 }

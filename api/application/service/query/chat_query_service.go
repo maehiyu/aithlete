@@ -3,6 +3,7 @@ package query
 import (
 	"api/application/dto"
 	"api/application/query"
+	"context"
 )
 
 type ChatQueryService struct {
@@ -14,8 +15,8 @@ func NewChatQueryService(chatQuery query.ChatQueryInterface, participantQuery qu
 	return &ChatQueryService{chatQuery: chatQuery, participantQuery: participantQuery}
 }
 	
-func (s *ChatQueryService) GetChatsByUserID(userID string) ([]dto.ChatSummaryResponse, error) {
-	chats, err := s.chatQuery.FindChatsByUserID(userID)
+func (s *ChatQueryService) GetChatsByUserID(ctx context.Context, userID string) ([]dto.ChatSummaryResponse, error) {
+	chats, err := s.chatQuery.FindChatsByUserID(ctx, userID)
 
 	if err != nil {
 		return nil, err
@@ -24,13 +25,13 @@ func (s *ChatQueryService) GetChatsByUserID(userID string) ([]dto.ChatSummaryRes
 	return chats, nil
 }
 
-func (s *ChatQueryService) GetChatByID(chatID string) (*dto.ChatDetailResponse, error) {
-	chat, err := s.chatQuery.FindChatByID(chatID)
+func (s *ChatQueryService) GetChatByID(ctx context.Context, chatID string) (*dto.ChatDetailResponse, error) {
+	chat, err := s.chatQuery.FindChatByID(ctx, chatID)
 	if err != nil {
 		return nil, err
 	}
 
-	participants, err := s.participantQuery.FindParticipantsByIDs(chat.ParticipantIDs)
+	participants, err := s.participantQuery.FindParticipantsByIDs(ctx, chat.ParticipantIDs)
 	if err != nil {
 		return nil, err
 	}

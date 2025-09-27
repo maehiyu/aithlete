@@ -3,11 +3,12 @@ package repository
 
 import (
 	"api/domain/entity"
+	"context"
 )
 
 type ParticipantRepositoryInterface interface {
-	FindByID(participantID string) (*entity.Participant, error)
-	FindByIDs(participantIDs []string) ([]*entity.Participant, error)
-	Create(participant *entity.Participant) (string, error)
-	Update(participant *entity.Participant) error
+	FindByID(ctx context.Context, participantID string) (*entity.Participant, error)
+	FindByIDs(ctx context.Context, participantIDs []string) ([]*entity.Participant, error)
+	Create(ctx context.Context, participant *entity.Participant) (string, error)
+	Update(ctx context.Context, participant *entity.Participant) error
 }

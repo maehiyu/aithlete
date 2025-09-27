@@ -3,7 +3,8 @@ package query
 import (
 	"api/application/dto"
 	"api/domain/entity"
-	"reflect" // reflectパッケージをインポート
+	"context"
+	"reflect"
 	"testing"
 
 	"api/application/query/mocks"
@@ -15,19 +16,20 @@ func TestGetParticipantsByChatID(t *testing.T) {
 	defer ctrl.Finish()
 
 	mockParticipantQuery := mocks.NewMockParticipantQueryInterface(ctrl)
+	ctx := context.Background()
 
 	// participantQuery.FindParticipantsByChatID のモック設定
 	mockParticipantEntities := []entity.Participant{
 		{ID: "user-1", Name: "Alice", Email: "alice@example.com", Role: "user"},
 		{ID: "user-2", Name: "Bob", Email: "bob@example.com", Role: "user"},
 	}
-	mockParticipantQuery.EXPECT().FindParticipantsByChatID(gomock.Eq("chat-1")).Return(mockParticipantEntities, nil).Times(1)
+	mockParticipantQuery.EXPECT().FindParticipantsByChatID(gomock.Any(), gomock.Eq("chat-1")).Return(mockParticipantEntities, nil).Times(1)
 
 	// dto.ParticipantEntityToResponse は直接呼び出される関数なので、ここではモック化せず実関数を呼び出す
 
 	service := NewParticipantQueryService(mockParticipantQuery)
 
-	participants, err := service.GetParticipantsByChatID("chat-1")
+	participants, err := service.GetParticipantsByChatID(ctx, "chat-1")
 	if err != nil {
 		t.Fatalf("expected no error, got %v", err)
 	}
@@ -53,16 +55,17 @@ func TestGetParticipantByID(t *testing.T) {
 	defer ctrl.Finish()
 
 	mockParticipantQuery := mocks.NewMockParticipantQueryInterface(ctrl)
+	ctx := context.Background()
 
 	// participantQuery.FindParticipantByID のモック設定 (見つかるケース)
 	mockParticipantEntity := &entity.Participant{
 		ID: "user-1", Name: "Alice", Email: "alice@example.com", Role: "user",
 	}
-	mockParticipantQuery.EXPECT().FindParticipantByID(gomock.Eq("user-1")).Return(mockParticipantEntity, nil).Times(1)
+	mockParticipantQuery.EXPECT().FindParticipantByID(gomock.Any(), gomock.Eq("user-1")).Return(mockParticipantEntity, nil).Times(1)
 
 	service := NewParticipantQueryService(mockParticipantQuery)
 
-	participant, err := service.GetParticipantByID("user-1")
+	participant, err := service.GetParticipantByID(ctx, "user-1")
 	if err != nil {
 		t.Fatalf("expected no error, got %v", err)
 	}
@@ -79,9 +82,9 @@ func TestGetParticipantByID(t *testing.T) {
 	}
 
 	// Test case for not found
-	mockParticipantQuery.EXPECT().FindParticipantByID(gomock.Eq("non-existent")).Return(nil, nil).Times(1) // nil entity, nil error を返す
+	mockParticipantQuery.EXPECT().FindParticipantByID(gomock.Any(), gomock.Eq("non-existent")).Return(nil, nil).Times(1) // nil entity, nil error を返す
 
-	participantNotFound, errNotFound := service.GetParticipantByID("non-existent")
+	participantNotFound, errNotFound := service.GetParticipantByID(ctx, "non-existent")
 	if errNotFound != nil {
 		t.Fatalf("expected no error for not found, got %v", errNotFound)
 	}
@@ -95,17 +98,18 @@ func TestGetCoachesBySport(t *testing.T) {
 	defer ctrl.Finish()
 
 	mockParticipantQuery := mocks.NewMockParticipantQueryInterface(ctrl)
+	ctx := context.Background()
 
 	// participantQuery.FindCoachesBySport のモック設定
 	mockCoachEntities := []entity.Participant{
 		{ID: "coach-1", Name: "Coach A", Email: "coachA@example.com", Role: "coach", Sports: []string{"soccer"}},
 		{ID: "coach-2", Name: "Coach B", Email: "coachB@example.com", Role: "coach", Sports: []string{"basketball"}},
 	}
-	mockParticipantQuery.EXPECT().FindCoachesBySport(gomock.Eq("soccer")).Return(mockCoachEntities, nil).Times(1)
+	mockParticipantQuery.EXPECT().FindCoachesBySport(gomock.Any(), gomock.Eq("soccer")).Return(mockCoachEntities, nil).Times(1)
 
 	service := NewParticipantQueryService(mockParticipantQuery)
 
-	coaches, err := service.GetCoachesBySport("soccer")
+	coaches, err := service.GetCoachesBySport(ctx, "soccer")
 	if err != nil {
 		t.Fatalf("expected no error, got %v", err)
 	}

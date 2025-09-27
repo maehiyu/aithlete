@@ -51,6 +51,20 @@ CREATE TABLE IF NOT EXISTS posedata (
     score DOUBLE PRECISION
 );
 
+CREATE TABLE IF NOT EXISTS appointments (
+    id TEXT PRIMARY KEY,
+    chat_id TEXT NOT NULL REFERENCES chats(id) ON DELETE CASCADE,
+    coach_id TEXT NOT NULL REFERENCES participants(id) ON DELETE CASCADE,
+    user_id TEXT NOT NULL REFERENCES participants(id) ON DELETE CASCADE,
+    title TEXT NOT NULL,
+    description TEXT,
+    scheduled_at TIMESTAMP WITH TIME ZONE NOT NULL,
+    duration INTEGER NOT NULL,
+    status TEXT NOT NULL,
+    created_at TIMESTAMP WITH TIME ZONE NOT NULL,
+    updated_at TIMESTAMP WITH TIME ZONE NOT NULL
+);
+
 -- テストデータ
 INSERT INTO participants (id, name, email, role, sports, icon_url) VALUES
     ('user1', 'ユーザー1', 'user1@example.com', 'user', ARRAY['soccer'], NULL),

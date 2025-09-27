@@ -6,6 +6,7 @@ package mocks
 
 import (
 	entity "api/domain/entity"
+	context "context"
 	reflect "reflect"
 
 	gomock "github.com/golang/mock/gomock"
@@ -35,103 +36,103 @@ func (m *MockChatRepositoryInterface) EXPECT() *MockChatRepositoryInterfaceMockR
 }
 
 // AddAnswer mocks base method.
-func (m *MockChatRepositoryInterface) AddAnswer(chatId string, answer *entity.Answer) error {
+func (m *MockChatRepositoryInterface) AddAnswer(ctx context.Context, chatId string, answer *entity.Answer) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "AddAnswer", chatId, answer)
+	ret := m.ctrl.Call(m, "AddAnswer", ctx, chatId, answer)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // AddAnswer indicates an expected call of AddAnswer.
-func (mr *MockChatRepositoryInterfaceMockRecorder) AddAnswer(chatId, answer interface{}) *gomock.Call {
+func (mr *MockChatRepositoryInterfaceMockRecorder) AddAnswer(ctx, chatId, answer interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AddAnswer", reflect.TypeOf((*MockChatRepositoryInterface)(nil).AddAnswer), chatId, answer)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AddAnswer", reflect.TypeOf((*MockChatRepositoryInterface)(nil).AddAnswer), ctx, chatId, answer)
 }
 
 // AddQuestion mocks base method.
-func (m *MockChatRepositoryInterface) AddQuestion(chatId string, question *entity.Question) error {
+func (m *MockChatRepositoryInterface) AddQuestion(ctx context.Context, chatId string, question *entity.Question) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "AddQuestion", chatId, question)
+	ret := m.ctrl.Call(m, "AddQuestion", ctx, chatId, question)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // AddQuestion indicates an expected call of AddQuestion.
-func (mr *MockChatRepositoryInterfaceMockRecorder) AddQuestion(chatId, question interface{}) *gomock.Call {
+func (mr *MockChatRepositoryInterfaceMockRecorder) AddQuestion(ctx, chatId, question interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AddQuestion", reflect.TypeOf((*MockChatRepositoryInterface)(nil).AddQuestion), chatId, question)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AddQuestion", reflect.TypeOf((*MockChatRepositoryInterface)(nil).AddQuestion), ctx, chatId, question)
 }
 
 // CreateChat mocks base method.
-func (m *MockChatRepositoryInterface) CreateChat(chat *entity.Chat) (string, error) {
+func (m *MockChatRepositoryInterface) CreateChat(ctx context.Context, chat *entity.Chat) (string, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "CreateChat", chat)
+	ret := m.ctrl.Call(m, "CreateChat", ctx, chat)
 	ret0, _ := ret[0].(string)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // CreateChat indicates an expected call of CreateChat.
-func (mr *MockChatRepositoryInterfaceMockRecorder) CreateChat(chat interface{}) *gomock.Call {
+func (mr *MockChatRepositoryInterfaceMockRecorder) CreateChat(ctx, chat interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateChat", reflect.TypeOf((*MockChatRepositoryInterface)(nil).CreateChat), chat)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateChat", reflect.TypeOf((*MockChatRepositoryInterface)(nil).CreateChat), ctx, chat)
 }
 
 // FindChatByID mocks base method.
-func (m *MockChatRepositoryInterface) FindChatByID(chatId string) (*entity.Chat, error) {
+func (m *MockChatRepositoryInterface) FindChatByID(ctx context.Context, chatId string) (*entity.Chat, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "FindChatByID", chatId)
+	ret := m.ctrl.Call(m, "FindChatByID", ctx, chatId)
 	ret0, _ := ret[0].(*entity.Chat)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // FindChatByID indicates an expected call of FindChatByID.
-func (mr *MockChatRepositoryInterfaceMockRecorder) FindChatByID(chatId interface{}) *gomock.Call {
+func (mr *MockChatRepositoryInterfaceMockRecorder) FindChatByID(ctx, chatId interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FindChatByID", reflect.TypeOf((*MockChatRepositoryInterface)(nil).FindChatByID), chatId)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FindChatByID", reflect.TypeOf((*MockChatRepositoryInterface)(nil).FindChatByID), ctx, chatId)
 }
 
 // FindParticipantIDsByChatID mocks base method.
-func (m *MockChatRepositoryInterface) FindParticipantIDsByChatID(chatId string) ([]string, error) {
+func (m *MockChatRepositoryInterface) FindParticipantIDsByChatID(ctx context.Context, chatId string) ([]string, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "FindParticipantIDsByChatID", chatId)
+	ret := m.ctrl.Call(m, "FindParticipantIDsByChatID", ctx, chatId)
 	ret0, _ := ret[0].([]string)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // FindParticipantIDsByChatID indicates an expected call of FindParticipantIDsByChatID.
-func (mr *MockChatRepositoryInterfaceMockRecorder) FindParticipantIDsByChatID(chatId interface{}) *gomock.Call {
+func (mr *MockChatRepositoryInterfaceMockRecorder) FindParticipantIDsByChatID(ctx, chatId interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FindParticipantIDsByChatID", reflect.TypeOf((*MockChatRepositoryInterface)(nil).FindParticipantIDsByChatID), chatId)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FindParticipantIDsByChatID", reflect.TypeOf((*MockChatRepositoryInterface)(nil).FindParticipantIDsByChatID), ctx, chatId)
 }
 
 // GetQuestionContent mocks base method.
-func (m *MockChatRepositoryInterface) GetQuestionContent(questionID string) (string, error) {
+func (m *MockChatRepositoryInterface) GetQuestionContent(ctx context.Context, questionID string) (string, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetQuestionContent", questionID)
+	ret := m.ctrl.Call(m, "GetQuestionContent", ctx, questionID)
 	ret0, _ := ret[0].(string)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // GetQuestionContent indicates an expected call of GetQuestionContent.
-func (mr *MockChatRepositoryInterfaceMockRecorder) GetQuestionContent(questionID interface{}) *gomock.Call {
+func (mr *MockChatRepositoryInterfaceMockRecorder) GetQuestionContent(ctx, questionID interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetQuestionContent", reflect.TypeOf((*MockChatRepositoryInterface)(nil).GetQuestionContent), questionID)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetQuestionContent", reflect.TypeOf((*MockChatRepositoryInterface)(nil).GetQuestionContent), ctx, questionID)
 }
 
 // UpdateChat mocks base method.
-func (m *MockChatRepositoryInterface) UpdateChat(chat *entity.Chat) error {
+func (m *MockChatRepositoryInterface) UpdateChat(ctx context.Context, chat *entity.Chat) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "UpdateChat", chat)
+	ret := m.ctrl.Call(m, "UpdateChat", ctx, chat)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // UpdateChat indicates an expected call of UpdateChat.
-func (mr *MockChatRepositoryInterfaceMockRecorder) UpdateChat(chat interface{}) *gomock.Call {
+func (mr *MockChatRepositoryInterfaceMockRecorder) UpdateChat(ctx, chat interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateChat", reflect.TypeOf((*MockChatRepositoryInterface)(nil).UpdateChat), chat)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateChat", reflect.TypeOf((*MockChatRepositoryInterface)(nil).UpdateChat), ctx, chat)
 }

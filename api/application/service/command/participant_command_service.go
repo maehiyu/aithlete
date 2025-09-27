@@ -4,6 +4,7 @@ import (
 	"api/application/dto"
 	"api/domain/entity"
 	"api/domain/repository"
+	"context"
 
 	"github.com/google/uuid"
 )
@@ -16,7 +17,7 @@ func NewParticipantCommandService(pr repository.ParticipantRepositoryInterface) 
 	return &ParticipantCommandService{participantRepo: pr}
 }
 
-func (s *ParticipantCommandService) CreateParticipant(participant dto.ParticipantCreateRequest, userID string) (string, error) {
+func (s *ParticipantCommandService) CreateParticipant(ctx context.Context, participant dto.ParticipantCreateRequest, userID string) (string, error) {
 	var participantEntity *entity.Participant
 	if participant.Role == "ai_coach" {
 		participantEntity = dto.ParticipantCreateRequestToEntity(participant, uuid.New().String())
@@ -24,7 +25,7 @@ func (s *ParticipantCommandService) CreateParticipant(participant dto.Participan
 		participantEntity = dto.ParticipantCreateRequestToEntity(participant, userID)
 	}
 
-	id, err := s.participantRepo.Create(participantEntity)
+	id, err := s.participantRepo.Create(ctx, participantEntity)
 	if err != nil {
 		return "", err
 	}
@@ -32,15 +33,15 @@ func (s *ParticipantCommandService) CreateParticipant(participant dto.Participan
 	return id, nil
 }
 
-func (s *ParticipantCommandService) UpdateParticipant(participantID string, participant dto.ParticipantUpdateRequest) error {
-	participantEntity, err := s.participantRepo.FindByID(participantID)
+func (s *ParticipantCommandService) UpdateParticipant(ctx context.Context, participantID string, participant dto.ParticipantUpdateRequest) error {
+	participantEntity, err := s.participantRepo.FindByID(ctx, participantID)
 	if err != nil {
 		return err
 	}
 
 	dto.ParticipantUpdateRequestToEntity(participantEntity, participant)
 
-	err = s.participantRepo.Update(participantEntity)
+	err = s.participantRepo.Update(ctx, participantEntity)
 	if err != nil {
 		return err
 	}

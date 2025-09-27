@@ -4,6 +4,7 @@ import (
 	"api/application/dto"
 	"api/domain/entity"
 	"api/domain/repository/mocks" // gomockで生成されるモックのパスを想定
+	"context"
 	"errors"
 	"testing"
 
@@ -19,13 +20,13 @@ func TestParticipantCommandService_CreateParticipant(t *testing.T) {
 	service := NewParticipantCommandService(mockRepo)
 
 	testCases := []struct {
-		name          string
-		req           dto.ParticipantCreateRequest
-		userID        string
-		setupMock     func(mock *mocks.MockParticipantRepositoryInterface)
-		expectedID    string
-		expectErr     bool
-		expectedErr   error
+		name        string
+		req         dto.ParticipantCreateRequest
+		userID      string
+		setupMock   func(mock *mocks.MockParticipantRepositoryInterface)
+		expectedID  string
+		expectErr   bool
+		expectedErr error
 	}{
 		{
 			name: "Success - Create normal user",
@@ -35,7 +36,7 @@ func TestParticipantCommandService_CreateParticipant(t *testing.T) {
 			},
 			userID: "user-id-123",
 			setupMock: func(mock *mocks.MockParticipantRepositoryInterface) {
-				mock.EXPECT().Create(gomock.Any()).DoAndReturn(func(p *entity.Participant) (string, error) {
+				mock.EXPECT().Create(gomock.Any(), gomock.Any()).DoAndReturn(func(ctx context.Context, p *entity.Participant) (string, error) {
 					assert.Equal(t, "Test User", p.Name)
 					assert.Equal(t, "user", p.Role)
 					assert.Equal(t, "user-id-123", p.ID)
@@ -53,7 +54,7 @@ func TestParticipantCommandService_CreateParticipant(t *testing.T) {
 			},
 			userID: "some-user-id", // This should be ignored
 			setupMock: func(mock *mocks.MockParticipantRepositoryInterface) {
-				mock.EXPECT().Create(gomock.Any()).DoAndReturn(func(p *entity.Participant) (string, error) {
+				mock.EXPECT().Create(gomock.Any(), gomock.Any()).DoAndReturn(func(ctx context.Context, p *entity.Participant) (string, error) {
 					assert.Equal(t, "AI Coach", p.Name)
 					assert.Equal(t, "ai_coach", p.Role)
 					assert.NotEqual(t, "some-user-id", p.ID) // Should be a new UUID
@@ -71,10 +72,10 @@ func TestParticipantCommandService_CreateParticipant(t *testing.T) {
 			},
 			userID: "user-id-fail",
 			setupMock: func(mock *mocks.MockParticipantRepositoryInterface) {
-				mock.EXPECT().Create(gomock.Any()).Return("", errors.New("db error"))
+				mock.EXPECT().Create(gomock.Any(), gomock.Any()).Return("", errors.New("db error"))
 			},
-			expectedID: "",
-			expectErr:  true,
+			expectedID:  "",
+			expectErr:   true,
 			expectedErr: errors.New("db error"),
 		},
 	}
@@ -82,7 +83,7 @@ func TestParticipantCommandService_CreateParticipant(t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			tc.setupMock(mockRepo)
-			id, err := service.CreateParticipant(tc.req, tc.userID)
+			id, err := service.CreateParticipant(context.Background(), tc.req, tc.userID)
 
 			if tc.expectErr {
 				assert.Error(t, err)
@@ -111,22 +112,22 @@ func TestParticipantCommandService_UpdateParticipant(t *testing.T) {
 	newName := "New Name"
 
 	testCases := []struct {
-		name        string
+		name          string
 		participantID string
-		req         dto.ParticipantUpdateRequest
-		setupMock   func(mock *mocks.MockParticipantRepositoryInterface)
-		expectErr   bool
-		expectedErr error
+		req           dto.ParticipantUpdateRequest
+		setupMock     func(mock *mocks.MockParticipantRepositoryInterface)
+		expectErr     bool
+		expectedErr   error
 	}{
 		{
-			name:        "Success - Update participant",
+			name:          "Success - Update participant",
 			participantID: participantID,
 			req: dto.ParticipantUpdateRequest{
 				Name: &newName,
 			},
 			setupMock: func(mock *mocks.MockParticipantRepositoryInterface) {
-				mock.EXPECT().FindByID(participantID).Return(existingParticipant, nil)
-				mock.EXPECT().Update(gomock.Any()).DoAndReturn(func(p *entity.Participant) error {
+				mock.EXPECT().FindByID(gomock.Any(), participantID).Return(existingParticipant, nil)
+				mock.EXPECT().Update(gomock.Any(), gomock.Any()).DoAndReturn(func(ctx context.Context, p *entity.Participant) error {
 					assert.Equal(t, newName, p.Name)
 					return nil
 				})
@@ -134,26 +135,26 @@ func TestParticipantCommandService_UpdateParticipant(t *testing.T) {
 			expectErr: false,
 		},
 		{
-			name:        "Error - FindByID fails",
+			name:          "Error - FindByID fails",
 			participantID: participantID,
 			req: dto.ParticipantUpdateRequest{
 				Name: &newName,
 			},
 			setupMock: func(mock *mocks.MockParticipantRepositoryInterface) {
-				mock.EXPECT().FindByID(participantID).Return(nil, errors.New("not found"))
+				mock.EXPECT().FindByID(gomock.Any(), participantID).Return(nil, errors.New("not found"))
 			},
 			expectErr:   true,
 			expectedErr: errors.New("not found"),
 		},
 		{
-			name:        "Error - Update fails",
+			name:          "Error - Update fails",
 			participantID: participantID,
 			req: dto.ParticipantUpdateRequest{
 				Name: &newName,
 			},
 			setupMock: func(mock *mocks.MockParticipantRepositoryInterface) {
-				mock.EXPECT().FindByID(participantID).Return(existingParticipant, nil)
-				mock.EXPECT().Update(gomock.Any()).Return(errors.New("db update error"))
+				mock.EXPECT().FindByID(gomock.Any(), participantID).Return(existingParticipant, nil)
+				mock.EXPECT().Update(gomock.Any(), gomock.Any()).Return(errors.New("db update error"))
 			},
 			expectErr:   true,
 			expectedErr: errors.New("db update error"),
@@ -163,7 +164,7 @@ func TestParticipantCommandService_UpdateParticipant(t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			tc.setupMock(mockRepo)
-			err := service.UpdateParticipant(tc.participantID, tc.req)
+			err := service.UpdateParticipant(context.Background(), tc.participantID, tc.req)
 
 			if tc.expectErr {
 				assert.Error(t, err)

@@ -18,8 +18,7 @@ func NewParticipantQuery(pool *pgxpool.Pool) *ParticipantQuery {
 	}
 }
 
-func (q *ParticipantQuery) FindParticipantsByIDs(ids []string) ([]entity.Participant, error) {
-	ctx := context.Background()
+func (q *ParticipantQuery) FindParticipantsByIDs(ctx context.Context, ids []string) ([]entity.Participant, error) {
 	conn, err := q.pool.Acquire(ctx)
 	if err != nil {
 		return nil, err
@@ -44,8 +43,7 @@ func (q *ParticipantQuery) FindParticipantsByIDs(ids []string) ([]entity.Partici
 	return participants, nil
 }
 
-func (q *ParticipantQuery) FindParticipantsByChatID(chatID string) ([]entity.Participant, error) {
-	ctx := context.Background()
+func (q *ParticipantQuery) FindParticipantsByChatID(ctx context.Context, chatID string) ([]entity.Participant, error) {
 	conn, err := q.pool.Acquire(ctx)
 	if err != nil {
 		return nil, err
@@ -75,8 +73,7 @@ func (q *ParticipantQuery) FindParticipantsByChatID(chatID string) ([]entity.Par
 	return participants, nil
 }
 
-func (q *ParticipantQuery) FindParticipantByID(participantID string) (*entity.Participant, error) {
-	ctx := context.Background()
+func (q *ParticipantQuery) FindParticipantByID(ctx context.Context, participantID string) (*entity.Participant, error) {
 	conn, err := q.pool.Acquire(ctx)
 	if err != nil {
 		return nil, err
@@ -96,8 +93,7 @@ func (q *ParticipantQuery) FindParticipantByID(participantID string) (*entity.Pa
 	return &p, nil
 }
 
-func (q *ParticipantQuery) FindCoachesBySport(sport string) ([]entity.Participant, error) {
-	ctx := context.Background()
+func (q *ParticipantQuery) FindCoachesBySport(ctx context.Context, sport string) ([]entity.Participant, error) {
 	conn, err := q.pool.Acquire(ctx)
 	if err != nil {
 		return nil, err

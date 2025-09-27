@@ -3,6 +3,7 @@ package query
 import (
 	"api/application/dto"
 	"api/application/query"
+	"context"
 )
 
 type ParticipantQueryService struct {
@@ -13,8 +14,8 @@ func NewParticipantQueryService(qs query.ParticipantQueryInterface) *Participant
 	return &ParticipantQueryService{ParticipantQuery: qs}
 }
 	
-func (s *ParticipantQueryService) GetParticipantsByChatID(chatID string) ([]dto.ParticipantResponse, error) {
-	participants, err := s.ParticipantQuery.FindParticipantsByChatID(chatID)
+func (s *ParticipantQueryService) GetParticipantsByChatID(ctx context.Context, chatID string) ([]dto.ParticipantResponse, error) {
+	participants, err := s.ParticipantQuery.FindParticipantsByChatID(ctx, chatID)
 	if err != nil {
 		return nil, err
 	}
@@ -25,8 +26,8 @@ func (s *ParticipantQueryService) GetParticipantsByChatID(chatID string) ([]dto.
 	return response, nil
 }
 
-func (s *ParticipantQueryService) GetParticipantByID(participantID string) (*dto.ParticipantResponse, error) {
-	participant, err := s.ParticipantQuery.FindParticipantByID(participantID)
+func (s *ParticipantQueryService) GetParticipantByID(ctx context.Context, participantID string) (*dto.ParticipantResponse, error) {
+	participant, err := s.ParticipantQuery.FindParticipantByID(ctx, participantID)
 	if err != nil {
 		return nil, err
 	}
@@ -34,8 +35,8 @@ func (s *ParticipantQueryService) GetParticipantByID(participantID string) (*dto
 	return response, nil
 }
 
-func (s *ParticipantQueryService) GetCoachesBySport(sport string) ([]dto.ParticipantResponse, error) {
-	participants, err := s.ParticipantQuery.FindCoachesBySport(sport)
+func (s *ParticipantQueryService) GetCoachesBySport(ctx context.Context, sport string) ([]dto.ParticipantResponse, error) {
+	participants, err := s.ParticipantQuery.FindCoachesBySport(ctx, sport)
 	if err != nil {
 		return nil, err
 	}

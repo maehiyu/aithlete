@@ -32,6 +32,7 @@ func cleanup(t *testing.T, pool *pgxpool.Pool) {
 }
 
 func TestParticipantRepository(t *testing.T) {
+	ctx := context.Background()
 	pool := setupTestDB(t)
 	defer pool.Close()
 	repo := repository.NewParticipantRepository(pool)
@@ -51,12 +52,12 @@ func TestParticipantRepository(t *testing.T) {
 		}
 
 		// Act: Create
-		createdID, err := repo.Create(p)
+		createdID, err := repo.Create(ctx, p)
 		require.NoError(t, err)
 		assert.Equal(t, p.ID, createdID)
 
 		// Act: Find
-		found, err := repo.FindByID(p.ID)
+		found, err := repo.FindByID(ctx, p.ID)
 
 		// Assert
 		require.NoError(t, err)
@@ -70,7 +71,7 @@ func TestParticipantRepository(t *testing.T) {
 
 	t.Run("FindByID - Not Found", func(t *testing.T) {
 		// Act
-		_, err := repo.FindByID("non-existent-id")
+		_, err := repo.FindByID(ctx, "non-existent-id")
 
 		// Assert
 		assert.Error(t, err)
@@ -79,17 +80,17 @@ func TestParticipantRepository(t *testing.T) {
 	t.Run("Update", func(t *testing.T) {
 		// Arrange: Create a participant to update
 		p := &entity.Participant{ID: "user-2", Name: "Before Update", Email: "update@example.com", Role: "user"}
-		_, err := repo.Create(p)
+		_, err := repo.Create(ctx, p)
 		require.NoError(t, err)
 
 		// Act
 		updatedName := "After Update"
 		p.Name = updatedName
-		err = repo.Update(p)
+		err = repo.Update(ctx, p)
 		require.NoError(t, err)
 
 		// Assert
-		found, err := repo.FindByID(p.ID)
+		found, err := repo.FindByID(ctx, p.ID)
 		require.NoError(t, err)
 		assert.Equal(t, updatedName, found.Name)
 	})
@@ -98,14 +99,14 @@ func TestParticipantRepository(t *testing.T) {
 		// Arrange: Create multiple participants
 		p1 := &entity.Participant{ID: "user-3", Name: "User 3", Email: "3@example.com", Role: "user"}
 		p2 := &entity.Participant{ID: "user-4", Name: "User 4", Email: "4@example.com", Role: "user"}
-		_, err := repo.Create(p1)
+		_, err := repo.Create(ctx, p1)
 		require.NoError(t, err)
-		_, err = repo.Create(p2)
+		_, err = repo.Create(ctx, p2)
 		require.NoError(t, err)
 
 		// Act
 		idsToFind := []string{p1.ID, p2.ID, "non-existent"}
-		found, err := repo.FindByIDs(idsToFind)
+		found, err := repo.FindByIDs(ctx, idsToFind)
 
 		// Assert
 		require.NoError(t, err)

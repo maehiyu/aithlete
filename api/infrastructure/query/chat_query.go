@@ -17,8 +17,7 @@ func NewChatQuery(pool *pgxpool.Pool) *ChatQuery {
 	return &ChatQuery{pool: pool}
 }
 
-func (q *ChatQuery) FindChatsByUserID(userID string) ([]dto.ChatSummaryResponse, error) {
-	ctx := context.Background()
+func (q *ChatQuery) FindChatsByUserID(ctx context.Context, userID string) ([]dto.ChatSummaryResponse, error) {
 	conn, err := q.pool.Acquire(ctx)
 	if err != nil {
 		return nil, err
@@ -83,8 +82,7 @@ func derefString(s *string) string {
 }
 
 
-func (q *ChatQuery) FindChatByID(chatID string) (*entity.Chat, error) {
-	ctx := context.Background()
+func (q *ChatQuery) FindChatByID(ctx context.Context, chatID string) (*entity.Chat, error) {
 	conn, err := q.pool.Acquire(ctx)
 	if err != nil {
 		return nil, err

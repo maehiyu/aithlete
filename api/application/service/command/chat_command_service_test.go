@@ -30,6 +30,7 @@ func setupService(t *testing.T) (*ChatCommandService, *domain_mocks.MockChatRepo
 
 func TestChatCommandService_CreateChat(t *testing.T) {
 	service, mockChatRepo, _, _, _, _ := setupService(t)
+	ctx := context.Background()
 
 	userID := "user-1"
 	chatReq := dto.ChatCreateRequest{
@@ -38,22 +39,23 @@ func TestChatCommandService_CreateChat(t *testing.T) {
 	expectedChatID := "new-chat-id"
 
 	t.Run("Success", func(t *testing.T) {
-		mockChatRepo.EXPECT().CreateChat(gomock.Any()).DoAndReturn(func(chat *entity.Chat) (string, error) {
+		mockChatRepo.EXPECT().CreateChat(ctx, gomock.Any()).DoAndReturn(func(chat *entity.Chat) (string, error) {
 			assert.Contains(t, chat.ParticipantIDs, userID)
 			assert.Contains(t, chat.ParticipantIDs, "user-2")
 			return expectedChatID, nil
 		})
 
-		chatID, err := service.CreateChat(chatReq, userID)
+		chatID, err := service.CreateChat(ctx, chatReq, userID)
 
 		assert.NoError(t, err)
 		assert.Equal(t, expectedChatID, chatID)
 	})
 
 	t.Run("Error from repository", func(t *testing.T) {
-		mockChatRepo.EXPECT().CreateChat(gomock.Any()).Return("", errors.New("db error"))
+		mockChatRepo.EXPECT().CreateChat(ctx, gomock.Any()).Return("", errors.New("db error"))
 
-		_, err := service.CreateChat(chatReq, userID)
+
+		_, err := service.CreateChat(ctx, chatReq, userID)
 
 		assert.Error(t, err)
 	})
@@ -61,6 +63,7 @@ func TestChatCommandService_CreateChat(t *testing.T) {
 
 func TestChatCommandService_UpdateChat(t *testing.T) {
 	service, mockChatRepo, _, _, _, _ := setupService(t)
+	ctx := context.Background()
 
 	chatID := "chat-1"
 	newTitle := "New Title"
@@ -70,35 +73,36 @@ func TestChatCommandService_UpdateChat(t *testing.T) {
 
 	t.Run("Success", func(t *testing.T) {
 		existingChat := &entity.Chat{ID: chatID, Title: new(string)}
-		mockChatRepo.EXPECT().FindChatByID(chatID).Return(existingChat, nil)
-		mockChatRepo.EXPECT().UpdateChat(gomock.Any()).DoAndReturn(func(chat *entity.Chat) error {
+		mockChatRepo.EXPECT().FindChatByID(ctx, chatID).Return(existingChat, nil)
+		mockChatRepo.EXPECT().UpdateChat(ctx, gomock.Any()).DoAndReturn(func(ctx context.Context, chat *entity.Chat) error {
 			assert.Equal(t, newTitle, *chat.Title)
 			return nil
 		})
 
-		err := service.UpdateChat(chatID, updateReq)
+		err := service.UpdateChat(ctx, chatID, updateReq)
 		assert.NoError(t, err)
 	})
 
 	t.Run("Error on FindChatByID", func(t *testing.T) {
-		mockChatRepo.EXPECT().FindChatByID(chatID).Return(nil, errors.New("not found"))
+		mockChatRepo.EXPECT().FindChatByID(ctx, chatID).Return(nil, errors.New("not found"))
 
-		err := service.UpdateChat(chatID, updateReq)
+		err := service.UpdateChat(ctx, chatID, updateReq)
 		assert.Error(t, err)
 	})
 
 	t.Run("Error on UpdateChat", func(t *testing.T) {
 		existingChat := &entity.Chat{ID: chatID}
-		mockChatRepo.EXPECT().FindChatByID(chatID).Return(existingChat, nil)
-		mockChatRepo.EXPECT().UpdateChat(gomock.Any()).Return(errors.New("update failed"))
+		mockChatRepo.EXPECT().FindChatByID(ctx, chatID).Return(existingChat, nil)
+		mockChatRepo.EXPECT().UpdateChat(ctx, gomock.Any()).Return(errors.New("update failed"))
 
-		err := service.UpdateChat(chatID, updateReq)
+		err := service.UpdateChat(ctx, chatID, updateReq)
 		assert.Error(t, err)
 	})
 }
 
 func TestChatCommandService_SendMessage(t *testing.T) {
 	service, mockChatRepo, mockParticipantRepo, mockEventBroker, mockRagBroker, _ := setupService(t)
+	ctx := context.Background()
 
 	chatID := "chat-1"
 	userID := "user-1"
@@ -109,8 +113,8 @@ func TestChatCommandService_SendMessage(t *testing.T) {
 		req := dto.ChatItemRequest{ParticipantID: userID, Content: "Hello?", Type: "question"}
 
 		// Mock for getOtherParticipants and getOtherParticipantIDs
-		mockChatRepo.EXPECT().FindParticipantIDsByChatID(chatID).Return([]string{userID, aiCoachID, otherUserID}, nil).Times(2)
-		mockParticipantRepo.EXPECT().FindByIDs([]string{userID, aiCoachID, otherUserID}).Return([]*entity.Participant{
+		mockChatRepo.EXPECT().FindParticipantIDsByChatID(ctx, chatID).Return([]string{userID, aiCoachID, otherUserID}, nil).Times(2)
+		mockParticipantRepo.EXPECT().FindByIDs(ctx, []string{userID, aiCoachID, otherUserID}).Return([]*entity.Participant{
 			{ID: userID, Role: "user"},
 			{ID: aiCoachID, Role: "ai_coach"},
 			{ID: otherUserID, Role: "user"},
@@ -137,28 +141,29 @@ func TestChatCommandService_SendMessage(t *testing.T) {
 			return nil
 		})
 
-		err := service.SendMessage(chatID, req)
+		err := service.SendMessage(ctx, chatID, req)
 		assert.NoError(t, err)
 	})
 }
 
 func TestChatCommandService_SaveMessage(t *testing.T) {
 	service, mockChatRepo, _, _, _, mockVectorRepo := setupService(t)
+	ctx := context.Background()
 
 	t.Run("Success - save question", func(t *testing.T) {
 		item := dto.ChatItem{ID: "q-1", ChatID: "chat-1", Type: "question"}
-		mockChatRepo.EXPECT().AddQuestion(item.ChatID, gomock.Any()).Return(nil)
+		mockChatRepo.EXPECT().AddQuestion(ctx, item.ChatID, gomock.Any()).Return(nil)
 
-		err := service.SaveMessage(item)
+		err := service.SaveMessage(ctx, item)
 		assert.NoError(t, err)
 	})
 
 	t.Run("Success - save answer", func(t *testing.T) {
 		questionID := "q-1"
 		item := dto.ChatItem{ID: "a-1", ChatID: "chat-1", Type: "answer", QuestionID: &questionID}
-		mockChatRepo.EXPECT().AddAnswer(item.ChatID, gomock.Any()).Return(nil)
+		mockChatRepo.EXPECT().AddAnswer(ctx, item.ChatID, gomock.Any()).Return(nil)
 
-		err := service.SaveMessage(item)
+		err := service.SaveMessage(ctx, item)
 		assert.NoError(t, err)
 	})
 
@@ -171,37 +176,37 @@ func TestChatCommandService_SaveMessage(t *testing.T) {
 			QuestionID: &questionID,
 			Content:    "This is an AI answer.",
 		}
-		mockChatRepo.EXPECT().GetQuestionContent("q-1").Return("The question?", nil)
-		mockVectorRepo.EXPECT().SaveQAPair("chat-1", "The question?", "This is an AI answer.", "ai-a-1").Return(nil)
-		mockChatRepo.EXPECT().AddAnswer("chat-1", gomock.Any()).Return(nil)
+		mockChatRepo.EXPECT().GetQuestionContent(ctx, "q-1").Return("The question?", nil)
+		mockVectorRepo.EXPECT().SaveQAPair(ctx, "chat-1", "The question?", "This is an AI answer.", "ai-a-1").Return(nil)
+		mockChatRepo.EXPECT().AddAnswer(ctx, "chat-1", gomock.Any()).Return(nil)
 
-		err := service.SaveMessage(item)
+		err := service.SaveMessage(ctx, item)
 		assert.NoError(t, err)
 	})
 
 	t.Run("Success - save ai_answer with GetQuestionContent error", func(t *testing.T) {
 		item := dto.ChatItem{Type: "ai_answer", ChatID: "chat-1"}
-		mockChatRepo.EXPECT().GetQuestionContent(gomock.Any()).Return("", errors.New("db error"))
-		mockVectorRepo.EXPECT().SaveQAPair(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Times(0)
-		mockChatRepo.EXPECT().AddAnswer("chat-1", gomock.Any()).Return(nil)
+		mockChatRepo.EXPECT().GetQuestionContent(ctx, "q-1").Return("", errors.New("db error"))
+		mockVectorRepo.EXPECT().SaveQAPair(ctx, gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Times(0)
+		mockChatRepo.EXPECT().AddAnswer(ctx, "chat-1", gomock.Any()).Return(nil)
 
-		err := service.SaveMessage(item)
+		err := service.SaveMessage(ctx, item)
 		assert.NoError(t, err)
 	})
 
 	t.Run("Error on AddQuestion", func(t *testing.T) {
 		item := dto.ChatItem{Type: "question", ChatID: "chat-1"}
-		mockChatRepo.EXPECT().AddQuestion(gomock.Any(), gomock.Any()).Return(errors.New("db error"))
+		mockChatRepo.EXPECT().AddQuestion(ctx, item.ChatID, gomock.Any()).Return(errors.New("db error"))
 
-		err := service.SaveMessage(item)
+		err := service.SaveMessage(ctx, item)
 		assert.Error(t, err)
 	})
 
 	t.Run("Error on AddAnswer", func(t *testing.T) {
 		item := dto.ChatItem{Type: "answer", ChatID: "chat-1"}
-		mockChatRepo.EXPECT().AddAnswer(gomock.Any(), gomock.Any()).Return(errors.New("db error"))
+		mockChatRepo.EXPECT().AddAnswer(ctx, item.ChatID, gomock.Any()).Return(errors.New("db error"))
 
-		err := service.SaveMessage(item)
+		err := service.SaveMessage(ctx, item)
 		assert.Error(t, err)
 	})
 }

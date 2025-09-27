@@ -5,6 +5,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"api/domain/repository"
+	"context"
 )
 
 type VectorStoreRepository struct {
@@ -21,7 +23,7 @@ func NewVectorStoreRepository(weaviateEndpoint, weaviateClass, embeddingEndpoint
 	}
 }
 
-func (v *VectorStoreRepository) SaveQAPair(chatID, question, answer, answerID string) error {
+func (v *VectorStoreRepository) SaveQAPair(ctx context.Context, chatID, question, answer, answerID string) error {
 	txt := fmt.Sprintf("%s %s", question, answer)
 	payload := map[string]any{
 		"texts": []string{txt},
@@ -82,3 +84,4 @@ func (v *VectorStoreRepository) SaveQAPair(chatID, question, answer, answerID st
 	}
 	return nil
 }
+var _ repository.VectorStoreRepositoryInterface = (*VectorStoreRepository)(nil)

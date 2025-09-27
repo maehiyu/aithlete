@@ -13,6 +13,7 @@ import (
 
 func HandleGetChats(chatQueryService *query.ChatQueryService) gin.HandlerFunc {
 	return func(c *gin.Context) {
+		ctx := c.Request.Context()
 		userID, exists := c.Get("userId")
 		if !exists {
 			c.JSON(http.StatusUnauthorized, gin.H{"error": "userId not found"})
@@ -23,7 +24,7 @@ func HandleGetChats(chatQueryService *query.ChatQueryService) gin.HandlerFunc {
 			c.JSON(http.StatusUnauthorized, gin.H{"error": "userId invalid"})
 			return
 		}
-		chats, err := chatQueryService.GetChatsByUserID(uidStr)
+		chats, err := chatQueryService.GetChatsByUserID(ctx, uidStr)
 		if err != nil && err != sql.ErrNoRows {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
@@ -38,8 +39,9 @@ func HandleGetChats(chatQueryService *query.ChatQueryService) gin.HandlerFunc {
 
 func HandleGetChat(chatQueryService *query.ChatQueryService) gin.HandlerFunc {
 	return func(c *gin.Context) {
+		ctx := c.Request.Context()
 		chatID := c.Param("id")
-		chat, err := chatQueryService.GetChatByID(chatID)
+		chat, err := chatQueryService.GetChatByID(ctx, chatID)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
@@ -50,6 +52,7 @@ func HandleGetChat(chatQueryService *query.ChatQueryService) gin.HandlerFunc {
 
 func HandleCreateChat(chatCommandService *command.ChatCommandService) gin.HandlerFunc {
 	return func(c *gin.Context) {
+		ctx := c.Request.Context()
 		var req dto.ChatCreateRequest
 		userID, exists := c.Get("userId")
 		if !exists {
@@ -60,7 +63,7 @@ func HandleCreateChat(chatCommandService *command.ChatCommandService) gin.Handle
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
 		}
-		chatID, err := chatCommandService.CreateChat(req, userID.(string))
+		chatID, err := chatCommandService.CreateChat(ctx, req, userID.(string))
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
@@ -71,13 +74,14 @@ func HandleCreateChat(chatCommandService *command.ChatCommandService) gin.Handle
 
 func HandleUpdateChat(chatCommandService *command.ChatCommandService) gin.HandlerFunc {
 	return func(c *gin.Context) {
+		ctx := c.Request.Context()
 		chatID := c.Param("id")
 		var req dto.ChatUpdateRequest
 		if err := c.ShouldBindJSON(&req); err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
 		}
-		err := chatCommandService.UpdateChat(chatID, req)
+		err := chatCommandService.UpdateChat(ctx, chatID, req)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
@@ -88,6 +92,7 @@ func HandleUpdateChat(chatCommandService *command.ChatCommandService) gin.Handle
 
 func HandleSendMessage(chatCommandService *command.ChatCommandService) gin.HandlerFunc {
 	return func(c *gin.Context) {
+		ctx := c.Request.Context()
 		chatID := c.Param("id")
 		var req dto.ChatItemRequest
 		if err := c.ShouldBindJSON(&req); err != nil {
@@ -95,7 +100,7 @@ func HandleSendMessage(chatCommandService *command.ChatCommandService) gin.Handl
 			return
 		}
 
-		err := chatCommandService.SendMessage(chatID, req)
+		err := chatCommandService.SendMessage(ctx, chatID, req)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return

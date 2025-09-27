@@ -6,6 +6,7 @@ package mocks
 
 import (
 	entity "api/domain/entity"
+	context "context"
 	reflect "reflect"
 
 	gomock "github.com/golang/mock/gomock"
@@ -35,60 +36,60 @@ func (m *MockParticipantRepositoryInterface) EXPECT() *MockParticipantRepository
 }
 
 // Create mocks base method.
-func (m *MockParticipantRepositoryInterface) Create(participant *entity.Participant) (string, error) {
+func (m *MockParticipantRepositoryInterface) Create(ctx context.Context, participant *entity.Participant) (string, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Create", participant)
+	ret := m.ctrl.Call(m, "Create", ctx, participant)
 	ret0, _ := ret[0].(string)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // Create indicates an expected call of Create.
-func (mr *MockParticipantRepositoryInterfaceMockRecorder) Create(participant interface{}) *gomock.Call {
+func (mr *MockParticipantRepositoryInterfaceMockRecorder) Create(ctx, participant interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Create", reflect.TypeOf((*MockParticipantRepositoryInterface)(nil).Create), participant)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Create", reflect.TypeOf((*MockParticipantRepositoryInterface)(nil).Create), ctx, participant)
 }
 
 // FindByID mocks base method.
-func (m *MockParticipantRepositoryInterface) FindByID(participantID string) (*entity.Participant, error) {
+func (m *MockParticipantRepositoryInterface) FindByID(ctx context.Context, participantID string) (*entity.Participant, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "FindByID", participantID)
+	ret := m.ctrl.Call(m, "FindByID", ctx, participantID)
 	ret0, _ := ret[0].(*entity.Participant)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // FindByID indicates an expected call of FindByID.
-func (mr *MockParticipantRepositoryInterfaceMockRecorder) FindByID(participantID interface{}) *gomock.Call {
+func (mr *MockParticipantRepositoryInterfaceMockRecorder) FindByID(ctx, participantID interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FindByID", reflect.TypeOf((*MockParticipantRepositoryInterface)(nil).FindByID), participantID)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FindByID", reflect.TypeOf((*MockParticipantRepositoryInterface)(nil).FindByID), ctx, participantID)
 }
 
 // FindByIDs mocks base method.
-func (m *MockParticipantRepositoryInterface) FindByIDs(participantIDs []string) ([]*entity.Participant, error) {
+func (m *MockParticipantRepositoryInterface) FindByIDs(ctx context.Context, participantIDs []string) ([]*entity.Participant, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "FindByIDs", participantIDs)
+	ret := m.ctrl.Call(m, "FindByIDs", ctx, participantIDs)
 	ret0, _ := ret[0].([]*entity.Participant)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // FindByIDs indicates an expected call of FindByIDs.
-func (mr *MockParticipantRepositoryInterfaceMockRecorder) FindByIDs(participantIDs interface{}) *gomock.Call {
+func (mr *MockParticipantRepositoryInterfaceMockRecorder) FindByIDs(ctx, participantIDs interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FindByIDs", reflect.TypeOf((*MockParticipantRepositoryInterface)(nil).FindByIDs), participantIDs)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FindByIDs", reflect.TypeOf((*MockParticipantRepositoryInterface)(nil).FindByIDs), ctx, participantIDs)
 }
 
 // Update mocks base method.
-func (m *MockParticipantRepositoryInterface) Update(participant *entity.Participant) error {
+func (m *MockParticipantRepositoryInterface) Update(ctx context.Context, participant *entity.Participant) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Update", participant)
+	ret := m.ctrl.Call(m, "Update", ctx, participant)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // Update indicates an expected call of Update.
-func (mr *MockParticipantRepositoryInterfaceMockRecorder) Update(participant interface{}) *gomock.Call {
+func (mr *MockParticipantRepositoryInterfaceMockRecorder) Update(ctx, participant interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Update", reflect.TypeOf((*MockParticipantRepositoryInterface)(nil).Update), participant)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Update", reflect.TypeOf((*MockParticipantRepositoryInterface)(nil).Update), ctx, participant)
 }

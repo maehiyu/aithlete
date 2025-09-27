@@ -5,6 +5,7 @@
 package mocks
 
 import (
+	context "context"
 	reflect "reflect"
 
 	gomock "github.com/golang/mock/gomock"
@@ -34,15 +35,15 @@ func (m *MockVectorStoreRepositoryInterface) EXPECT() *MockVectorStoreRepository
 }
 
 // SaveQAPair mocks base method.
-func (m *MockVectorStoreRepositoryInterface) SaveQAPair(chatID, question, answer, answerID string) error {
+func (m *MockVectorStoreRepositoryInterface) SaveQAPair(ctx context.Context, chatID, question, answer, answerID string) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "SaveQAPair", chatID, question, answer, answerID)
+	ret := m.ctrl.Call(m, "SaveQAPair", ctx, chatID, question, answer, answerID)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // SaveQAPair indicates an expected call of SaveQAPair.
-func (mr *MockVectorStoreRepositoryInterfaceMockRecorder) SaveQAPair(chatID, question, answer, answerID interface{}) *gomock.Call {
+func (mr *MockVectorStoreRepositoryInterfaceMockRecorder) SaveQAPair(ctx, chatID, question, answer, answerID interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SaveQAPair", reflect.TypeOf((*MockVectorStoreRepositoryInterface)(nil).SaveQAPair), chatID, question, answer, answerID)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SaveQAPair", reflect.TypeOf((*MockVectorStoreRepositoryInterface)(nil).SaveQAPair), ctx, chatID, question, answer, answerID)
 }

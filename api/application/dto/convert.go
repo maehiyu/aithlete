@@ -160,3 +160,55 @@ func ChatItemToAnswer(resp ChatItem) *entity.Answer {
 		// Attachments:   ... // 必要なら変換追加
 	}
 }
+
+func AppointmentCreateRequestToEntity(dto AppointmentCreateRequest, id string, now time.Time) *entity.Appointment {
+	return &entity.Appointment{
+		ID:          id,
+		ChatID:      dto.ChatID,
+		CoachID:     dto.CoachID,
+		UserID:      dto.UserID,
+		Title:       dto.Title,
+		Description: dto.Description,
+		ScheduledAt: dto.ScheduledAt,
+		Duration:    dto.Duration,
+		Status:      "scheduled", 
+		CreatedAt:   now,
+		UpdatedAt:   now,
+	}
+}
+
+func AppointmentUpdateRequestToEntity(appointment *entity.Appointment, dto AppointmentUpdateRequest) {
+	if dto.Title != nil {
+		appointment.Title = *dto.Title
+	}
+	if dto.Description != nil {
+		appointment.Description = *dto.Description
+	}
+	if dto.ScheduledAt != nil {
+		appointment.ScheduledAt = *dto.ScheduledAt
+	}
+	if dto.Duration != nil {
+		appointment.Duration = *dto.Duration
+	}
+	if dto.Status != nil {
+		appointment.Status = *dto.Status
+	}
+	appointment.UpdatedAt = time.Now()
+}
+
+func AppointmentEntityToResponses(appointment *entity.Appointment) *AppointmentResponse {
+	if appointment == nil {
+		return nil
+	}
+	return &AppointmentResponse{
+		ID:          appointment.ID,
+		ChatID:      appointment.ChatID,
+		CoachID:     appointment.CoachID,
+		UserID:      appointment.UserID,
+		Title:       appointment.Title,
+		Description: appointment.Description,
+		ScheduledAt: appointment.ScheduledAt,
+		Duration:    appointment.Duration,
+		Status:      appointment.Status,
+	}
+}

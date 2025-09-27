@@ -5,6 +5,7 @@ import (
 	"api/domain/entity" // entityパッケージをインポート
 	"testing"
 	"time"
+	"context"
 
 	"api/application/query/mocks"
 	"github.com/golang/mock/gomock"
@@ -13,6 +14,7 @@ import (
 func TestGetChatsByUserID(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
+	ctx := context.Background()
 
 	mockChatQuery := mocks.NewMockChatQueryInterface(ctrl)
 
@@ -42,11 +44,11 @@ func TestGetChatsByUserID(t *testing.T) {
 		},
 	}
 
-	mockChatQuery.EXPECT().FindChatsByUserID(gomock.Any()).Return(expectedChats, nil).Times(1)
+	mockChatQuery.EXPECT().FindChatsByUserID(gomock.Any(), gomock.Any()).Return(expectedChats, nil).Times(1)
 
 	service := NewChatQueryService(mockChatQuery, nil) // ParticipantQueryInterfaceは今回は不要なのでnil
 
-	chats, err := service.GetChatsByUserID("user-123")
+	chats, err := service.GetChatsByUserID(ctx, "user-123")
 	if err != nil {
 		t.Fatalf("expected no error, got %v", err)
 	}
@@ -60,6 +62,7 @@ func TestGetChatsByUserID(t *testing.T) {
 func TestGetChatByID(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
+	ctx := context.Background()
 
 	mockChatQuery := mocks.NewMockChatQueryInterface(ctrl)
 	mockParticipantQuery := mocks.NewMockParticipantQueryInterface(ctrl)
@@ -73,21 +76,21 @@ func TestGetChatByID(t *testing.T) {
 		StartedAt:      time.Now(),
 		LastActiveAt:   time.Now(),
 	}
-	mockChatQuery.EXPECT().FindChatByID(gomock.Eq("chat-1")).Return(mockChatEntity, nil).Times(1)
+	mockChatQuery.EXPECT().FindChatByID(gomock.Any(),gomock.Eq("chat-1")).Return(mockChatEntity, nil).Times(1)
 
 	// participantQuery.FindParticipantsByIDs のモック設定
 	mockParticipantEntities := []entity.Participant{
 		{ID: "user-1", Name: "Alice", Email: "alice@example.com", Role: "user"},
 		{ID: "user-2", Name: "Bob", Email: "bob@example.com", Role: "user"},
 	}
-	mockParticipantQuery.EXPECT().FindParticipantsByIDs(gomock.Eq([]string{"user-1", "user-2"})).Return(mockParticipantEntities, nil).Times(1)
+	mockParticipantQuery.EXPECT().FindParticipantsByIDs(gomock.Any(), gomock.Eq([]string{"user-1", "user-2"})).Return(mockParticipantEntities, nil).Times(1)
 
 	// dto.ChatEntityToDetailResponse は直接呼び出される関数なので、ここではモック化せず実関数を呼び出す
 	// ChatQueryService のテストなので、この変換関数が正しく動作することは前提とする
 
 	service := NewChatQueryService(mockChatQuery, mockParticipantQuery)
 
-	chatDetail, err := service.GetChatByID("chat-1")
+	chatDetail, err := service.GetChatByID(ctx, "chat-1")
 	if err != nil {
 		t.Fatalf("expected no error, got %v", err)
 	}

@@ -3,15 +3,16 @@ package repository
 
 import (
 	"api/domain/entity"
+	"context"
 )
 
 type ChatRepositoryInterface interface {
-	CreateChat(chat *entity.Chat) (string, error)
-	FindChatByID(chatId string) (*entity.Chat, error)
+	CreateChat(ctx context.Context, chat *entity.Chat) (string, error)
+	FindChatByID(ctx context.Context, chatId string) (*entity.Chat, error)
 	
-	UpdateChat(chat *entity.Chat) error
-	AddQuestion(chatId string, question *entity.Question) error
-	AddAnswer(chatId string, answer *entity.Answer) error
-	FindParticipantIDsByChatID(chatId string) ([]string, error)
-	GetQuestionContent(questionID string) (string, error)
+	UpdateChat(ctx context.Context, chat *entity.Chat) error
+	AddQuestion(ctx context.Context, chatId string, question *entity.Question) error
+	AddAnswer(ctx context.Context, chatId string, answer *entity.Answer) error
+	FindParticipantIDsByChatID(ctx context.Context, chatId string) ([]string, error)
+	GetQuestionContent(ctx context.Context, questionID string) (string, error)
 }

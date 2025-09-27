@@ -7,6 +7,7 @@ package mocks
 import (
 	dto "api/application/dto"
 	entity "api/domain/entity"
+	context "context"
 	reflect "reflect"
 
 	gomock "github.com/golang/mock/gomock"
@@ -36,31 +37,31 @@ func (m *MockChatQueryInterface) EXPECT() *MockChatQueryInterfaceMockRecorder {
 }
 
 // FindChatByID mocks base method.
-func (m *MockChatQueryInterface) FindChatByID(chatID string) (*entity.Chat, error) {
+func (m *MockChatQueryInterface) FindChatByID(ctx context.Context, chatID string) (*entity.Chat, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "FindChatByID", chatID)
+	ret := m.ctrl.Call(m, "FindChatByID", ctx, chatID)
 	ret0, _ := ret[0].(*entity.Chat)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // FindChatByID indicates an expected call of FindChatByID.
-func (mr *MockChatQueryInterfaceMockRecorder) FindChatByID(chatID interface{}) *gomock.Call {
+func (mr *MockChatQueryInterfaceMockRecorder) FindChatByID(ctx, chatID interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FindChatByID", reflect.TypeOf((*MockChatQueryInterface)(nil).FindChatByID), chatID)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FindChatByID", reflect.TypeOf((*MockChatQueryInterface)(nil).FindChatByID), ctx, chatID)
 }
 
 // FindChatsByUserID mocks base method.
-func (m *MockChatQueryInterface) FindChatsByUserID(userID string) ([]dto.ChatSummaryResponse, error) {
+func (m *MockChatQueryInterface) FindChatsByUserID(ctx context.Context, userID string) ([]dto.ChatSummaryResponse, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "FindChatsByUserID", userID)
+	ret := m.ctrl.Call(m, "FindChatsByUserID", ctx, userID)
 	ret0, _ := ret[0].([]dto.ChatSummaryResponse)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // FindChatsByUserID indicates an expected call of FindChatsByUserID.
-func (mr *MockChatQueryInterfaceMockRecorder) FindChatsByUserID(userID interface{}) *gomock.Call {
+func (mr *MockChatQueryInterfaceMockRecorder) FindChatsByUserID(ctx, userID interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FindChatsByUserID", reflect.TypeOf((*MockChatQueryInterface)(nil).FindChatsByUserID), userID)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FindChatsByUserID", reflect.TypeOf((*MockChatQueryInterface)(nil).FindChatsByUserID), ctx, userID)
 }

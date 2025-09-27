@@ -3,11 +3,12 @@ package query
 
 import (
 	"api/domain/entity"
+	"context"
 )
 
 type ParticipantQueryInterface interface {
-	FindParticipantsByIDs(ids []string) ([]entity.Participant, error)
-	FindParticipantsByChatID(chatID string) ([]entity.Participant, error)
-	FindParticipantByID(participantID string) (*entity.Participant, error)
-	FindCoachesBySport(sport string) ([]entity.Participant, error)
+	FindParticipantsByIDs(ctx context.Context, ids []string) ([]entity.Participant, error)
+	FindParticipantsByChatID(ctx context.Context, chatID string) ([]entity.Participant, error)
+	FindParticipantByID(ctx context.Context, participantID string) (*entity.Participant, error)
+	FindCoachesBySport(ctx context.Context, sport string) ([]entity.Participant, error)
 }

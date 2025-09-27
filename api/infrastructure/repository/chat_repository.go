@@ -53,8 +53,7 @@ func NewChatRepository(conn *pgxpool.Pool) *ChatRepositoryImpl {
 	return &ChatRepositoryImpl{conn: conn}
 }
 
-func (r *ChatRepositoryImpl) CreateChat(chat *entity.Chat) (string, error) {
-	ctx := context.Background()
+func (r *ChatRepositoryImpl) CreateChat(ctx context.Context, chat *entity.Chat) (string, error) {
 	conn, err := r.conn.Acquire(ctx)
 	if err != nil {
 		return "", err
@@ -121,8 +120,7 @@ func (r *ChatRepositoryImpl) CreateChat(chat *entity.Chat) (string, error) {
 	return chat.ID, nil
 }
 
-func (r *ChatRepositoryImpl) FindChatByID(chatId string) (*entity.Chat, error) {
-	ctx := context.Background()
+func (r *ChatRepositoryImpl) FindChatByID(ctx context.Context, chatId string) (*entity.Chat, error) {
 	var chat entity.Chat
 	// chatsテーブル取得
 	row := r.conn.QueryRow(ctx, `SELECT id, started_at, last_active_at, title, participant_ids FROM chats WHERE id = $1`, chatId)
@@ -206,8 +204,7 @@ func (r *ChatRepositoryImpl) FindChatByID(chatId string) (*entity.Chat, error) {
 	return &chat, nil
 }
 
-func (r *ChatRepositoryImpl) UpdateChat(chat *entity.Chat) error {
-	ctx := context.Background()
+func (r *ChatRepositoryImpl) UpdateChat(ctx context.Context, chat *entity.Chat) error {
 	conn, err := r.conn.Acquire(ctx)
 	if err != nil {
 		return err
@@ -278,8 +275,7 @@ func (r *ChatRepositoryImpl) UpdateChat(chat *entity.Chat) error {
 	return nil
 }
 
-func (r *ChatRepositoryImpl) AddQuestion(chatId string, question *entity.Question) error {
-	ctx := context.Background()
+func (r *ChatRepositoryImpl) AddQuestion(ctx context.Context, chatId string, question *entity.Question) error {
 	conn, err := r.conn.Acquire(ctx)
 	if err != nil {
 		return err
@@ -320,8 +316,7 @@ func (r *ChatRepositoryImpl) AddQuestion(chatId string, question *entity.Questio
 	return err
 }
 
-func (r *ChatRepositoryImpl) AddAnswer(chatId string, answer *entity.Answer) error {
-	ctx := context.Background()
+func (r *ChatRepositoryImpl) AddAnswer(ctx context.Context, chatId string, answer *entity.Answer) error {
 	conn, err := r.conn.Acquire(ctx)
 	if err != nil {
 		return err
@@ -361,8 +356,7 @@ func (r *ChatRepositoryImpl) AddAnswer(chatId string, answer *entity.Answer) err
 	return err
 }
 
-func (r *ChatRepositoryImpl) FindParticipantIDsByChatID(chatId string) ([]string, error) {
-	ctx := context.Background()
+func (r *ChatRepositoryImpl) FindParticipantIDsByChatID(ctx context.Context, chatId string) ([]string, error) {
 	var participantIDs []string
 	row := r.conn.QueryRow(ctx, `SELECT participant_ids FROM chats WHERE id = $1`, chatId)
 	err := row.Scan(&participantIDs)
@@ -372,8 +366,7 @@ func (r *ChatRepositoryImpl) FindParticipantIDsByChatID(chatId string) ([]string
 	return participantIDs, nil
 }
 
-func (r *ChatRepositoryImpl) GetQuestionContent(questionID string) (string, error) {
-	ctx := context.Background()
+func (r *ChatRepositoryImpl) GetQuestionContent(ctx context.Context, questionID string) (string, error) {
 	var content string
 	row := r.conn.QueryRow(ctx, `SELECT content FROM questions WHERE id = $1`, questionID)
 	err := row.Scan(&content)

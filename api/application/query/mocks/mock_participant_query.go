@@ -6,6 +6,7 @@ package mocks
 
 import (
 	entity "api/domain/entity"
+	context "context"
 	reflect "reflect"
 
 	gomock "github.com/golang/mock/gomock"
@@ -35,61 +36,61 @@ func (m *MockParticipantQueryInterface) EXPECT() *MockParticipantQueryInterfaceM
 }
 
 // FindCoachesBySport mocks base method.
-func (m *MockParticipantQueryInterface) FindCoachesBySport(sport string) ([]entity.Participant, error) {
+func (m *MockParticipantQueryInterface) FindCoachesBySport(ctx context.Context, sport string) ([]entity.Participant, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "FindCoachesBySport", sport)
+	ret := m.ctrl.Call(m, "FindCoachesBySport", ctx, sport)
 	ret0, _ := ret[0].([]entity.Participant)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // FindCoachesBySport indicates an expected call of FindCoachesBySport.
-func (mr *MockParticipantQueryInterfaceMockRecorder) FindCoachesBySport(sport interface{}) *gomock.Call {
+func (mr *MockParticipantQueryInterfaceMockRecorder) FindCoachesBySport(ctx, sport interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FindCoachesBySport", reflect.TypeOf((*MockParticipantQueryInterface)(nil).FindCoachesBySport), sport)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FindCoachesBySport", reflect.TypeOf((*MockParticipantQueryInterface)(nil).FindCoachesBySport), ctx, sport)
 }
 
 // FindParticipantByID mocks base method.
-func (m *MockParticipantQueryInterface) FindParticipantByID(participantID string) (*entity.Participant, error) {
+func (m *MockParticipantQueryInterface) FindParticipantByID(ctx context.Context, participantID string) (*entity.Participant, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "FindParticipantByID", participantID)
+	ret := m.ctrl.Call(m, "FindParticipantByID", ctx, participantID)
 	ret0, _ := ret[0].(*entity.Participant)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // FindParticipantByID indicates an expected call of FindParticipantByID.
-func (mr *MockParticipantQueryInterfaceMockRecorder) FindParticipantByID(participantID interface{}) *gomock.Call {
+func (mr *MockParticipantQueryInterfaceMockRecorder) FindParticipantByID(ctx, participantID interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FindParticipantByID", reflect.TypeOf((*MockParticipantQueryInterface)(nil).FindParticipantByID), participantID)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FindParticipantByID", reflect.TypeOf((*MockParticipantQueryInterface)(nil).FindParticipantByID), ctx, participantID)
 }
 
 // FindParticipantsByChatID mocks base method.
-func (m *MockParticipantQueryInterface) FindParticipantsByChatID(chatID string) ([]entity.Participant, error) {
+func (m *MockParticipantQueryInterface) FindParticipantsByChatID(ctx context.Context, chatID string) ([]entity.Participant, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "FindParticipantsByChatID", chatID)
+	ret := m.ctrl.Call(m, "FindParticipantsByChatID", ctx, chatID)
 	ret0, _ := ret[0].([]entity.Participant)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // FindParticipantsByChatID indicates an expected call of FindParticipantsByChatID.
-func (mr *MockParticipantQueryInterfaceMockRecorder) FindParticipantsByChatID(chatID interface{}) *gomock.Call {
+func (mr *MockParticipantQueryInterfaceMockRecorder) FindParticipantsByChatID(ctx, chatID interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FindParticipantsByChatID", reflect.TypeOf((*MockParticipantQueryInterface)(nil).FindParticipantsByChatID), chatID)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FindParticipantsByChatID", reflect.TypeOf((*MockParticipantQueryInterface)(nil).FindParticipantsByChatID), ctx, chatID)
 }
 
 // FindParticipantsByIDs mocks base method.
-func (m *MockParticipantQueryInterface) FindParticipantsByIDs(ids []string) ([]entity.Participant, error) {
+func (m *MockParticipantQueryInterface) FindParticipantsByIDs(ctx context.Context, ids []string) ([]entity.Participant, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "FindParticipantsByIDs", ids)
+	ret := m.ctrl.Call(m, "FindParticipantsByIDs", ctx, ids)
 	ret0, _ := ret[0].([]entity.Participant)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // FindParticipantsByIDs indicates an expected call of FindParticipantsByIDs.
-func (mr *MockParticipantQueryInterfaceMockRecorder) FindParticipantsByIDs(ids interface{}) *gomock.Call {
+func (mr *MockParticipantQueryInterfaceMockRecorder) FindParticipantsByIDs(ctx, ids interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FindParticipantsByIDs", reflect.TypeOf((*MockParticipantQueryInterface)(nil).FindParticipantsByIDs), ids)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FindParticipantsByIDs", reflect.TypeOf((*MockParticipantQueryInterface)(nil).FindParticipantsByIDs), ctx, ids)
 }
