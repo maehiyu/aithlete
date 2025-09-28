@@ -1,15 +1,13 @@
-FROM golang:1.25-alpine AS builder
+FROM golang:1.24.4-alpine AS builder
 WORKDIR /app
-COPY go.mod go.sum ./
-RUN go mod download
 COPY . .
-RUN CGO_ENABLED=0 GOOS=linux go build -o /app/main ./main.go
+RUN apk add --no-cache tzdata
+RUN go build -o api-server main.go
 
-FROM alpine:latest
+FROM alpine:3.18
 WORKDIR /app
-COPY --from=builder /app/main .
-
+RUN apk add --no-cache tzdata
+COPY --from=builder /app/api-server .
 EXPOSE 8000
 ENV PORT=8000
-
-CMD ["./main"]
+CMD ["./api-server"]
