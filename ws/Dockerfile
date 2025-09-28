@@ -1,10 +1,15 @@
-FROM golang:1.21-alpine AS builder
+FROM golang:1.25-alpine AS builder
 WORKDIR /app
+COPY go.mod go.sum ./
+RUN go mod download
 COPY . .
-RUN go build -o ws-server main.go
+RUN CGO_ENABLED=0 GOOS=linux go build -o /app/main ./main.go
 
-FROM alpine:3.18
+FROM alpine:latest
 WORKDIR /app
-COPY --from=builder /app/ws-server .
+COPY --from=builder /app/main .
+
 EXPOSE 9000
-CMD ["./ws-server"]
+ENV PORT=9000
+
+CMD ["./main"]
