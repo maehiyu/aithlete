@@ -1,6 +1,6 @@
-import { Avatar } from '@mui/material';
 import type { ParticipantResponse, ChatItem } from '../../types';
-import { formatToMinute } from '../../utils/formatToMinute';
+import { ChatMessageContent } from './ChatMessageContent';
+import { MessageHeader } from './MessageHeader';
 
 interface ChatMessageItemProps {
   item: ChatItem;
@@ -11,34 +11,29 @@ interface ChatMessageItemProps {
 export function ChatMessageItem({ item, currentUserId, participants }: ChatMessageItemProps) {
   const participant = participants.find(p => p.id === item.participantId);
   const isMe = item.participantId === currentUserId;
+  const isAnswer = item.type === 'answer' || item.type === 'ai_answer';
+
   return (
     <div
       style={{
-        display: 'flex',
-        flexDirection: isMe ? 'row-reverse' : 'row',
-        justifyContent: 'flex-start',
-        alignItems: 'flex-start',
+        flexDirection: isAnswer ? 'column' : (isMe && !isAnswer ? 'row-reverse' : 'row'),
+        justifyContent: isAnswer ? 'center' : 'flex-start',
+        alignItems: isAnswer ? 'center' : 'flex-start',
         marginBottom: 24,
-        width: '100%', 
+        width: '100%',
       }}
     >
-      <Avatar src={participant?.iconUrl || undefined} alt={participant?.name || ''} />
+      <MessageHeader participant={participant} isMe={isMe} createdAt={item.createdAt} />
       <div
         style={{
-          marginLeft: isMe ? 0 : 8,
-          marginRight: isMe ? 8 : 0,
-          maxWidth: '80%',
-          textAlign: isMe ? 'right' : 'left', 
+          display: 'flex',
+          justifyContent: isMe ? 'flex-end' : 'flex-start',
+          flexGrow: 0,
+          marginLeft: isMe ? 50 : 0,
+          marginRight: isMe ? 24 : 0,
         }}
       >
-  <div style={{ color: '#888', fontSize: 12 }}>{formatToMinute(item.createdAt)}</div>
-        <div style={{ fontWeight: 'bold', marginBottom: 4 }}>{participant?.name ?? (isMe ? 'You' : 'User')}</div>
-        <div style={{
-          background: isMe ? '#c8e6c9' : '#e3f2fd',
-          borderRadius: 6,
-          padding: 8,
-          display: 'inline-block',
-        }}>{item.content}</div>
+        <ChatMessageContent content={item.content} isAnswer={isAnswer} />
       </div>
     </div>
   );
