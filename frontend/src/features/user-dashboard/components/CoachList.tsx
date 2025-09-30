@@ -8,14 +8,13 @@ import type { ChatCreateRequest } from '../../../types';
 
 export default function CoachList() {
   const { data: currentUser } = useCurrentUser();
-  // console.log('sport:', currentUser);
+
   const { data: coaches, isLoading, error } = useCoachesBySport(currentUser?.sports?.[0] || '');
 
   const navigate = useNavigate();
   const [isCreatingChat, setIsCreatingChat] = useState(false);
   const [chatError, setChatError] = useState<string | null>(null);
 
-  // ページ状態管理
   const pageState = usePageState(coaches, isLoading, error);
 
   const handleCoachClick = async (coachId: string) => {
@@ -23,7 +22,7 @@ export default function CoachList() {
       setChatError('現在のユーザー情報が取得できません。');
       return;
     }
-    if (isCreatingChat) return; // Prevent multiple clicks
+    if (isCreatingChat) return; 
 
     setIsCreatingChat(true);
     setChatError(null);
@@ -33,7 +32,7 @@ export default function CoachList() {
         participantIds: [currentUser.id, coachId],
       };
       const newChatId = await createChat(chatCreateRequest);
-      navigate(`/chat/${newChatId}`);
+      navigate(`/chats/${newChatId}`);
     } catch (err) {
       console.error('チャット作成エラー:', err);
       setChatError('チャットの作成に失敗しました。');

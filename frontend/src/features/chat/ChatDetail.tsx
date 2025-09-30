@@ -1,36 +1,42 @@
 import { useParams, useLocation } from 'react-router-dom';
 import { useChat, useSendMessage } from './useChat';
 import { useCurrentUser } from '../participant/hooks/useParticipant';
-import { useEffect, useRef } from 'react';
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { ChatMessageItem } from '../../components/common/ChatMessageItem';
 import { useChatEvents } from './useChatEvents';
 import ChatInputBar from './components/ChatInputBar';
 import { ChatLayout, LoadingPage, ErrorPage, usePageState } from '../../components/layout/PageLayout';
-import { ChatActionMenu }  from './components/ChatActionMenu';
+import { ChatActionMenu, ChatActionMenuItemConfig } from './components/ChatActionMenu';
+import { UsersIcon, CalendarDaysIcon, TrashIcon } from '@heroicons/react/24/outline';
+import { AppointmentFormModal } from '../../features/appointment/components/AppointmentFormModal';
+import { AppointmentListModal } from '../../features/appointment/components/AppointmentListModal';
 
 export function ChatDetail() {
-    const { id } = useParams<{ id: string }>();
+    const { id: chatId } = useParams<{ id: string }>();
     const location = useLocation();
-    const { data, isLoading, error } = useChat(id ?? "");
+    const { data, isLoading, error } = useChat(chatId ?? "");
     const { data: currentUser } = useCurrentUser();
     const timeline = data?.timeline || [];
     const latestQuestion = timeline.slice().reverse().find(item => item.type === 'question');
     const latestQuestionId = latestQuestion?.id;
-    const sendMessage = useSendMessage(id ?? "");
-    useChatEvents(id ?? "");
+    const sendMessage = useSendMessage(chatId ?? "");
+    useChatEvents(chatId ?? "");
     const bottomRef = useRef<HTMLDivElement | null>(null);
     const isFirstScroll = useRef(true);
     const [message, setMessage] = useState("");
     const sentInitialMessage = useRef(false);
 
+    // モーダルの開閉状態
+    const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+    const [isListModalOpen, setIsListModalOpen] = useState(false);
+
     // ページ状態管理
     const pageState = usePageState(data, isLoading, error);
 
-    // --- 仮のチャット操作ハンドラ ---
+    // --- チャット操作ハンドラ ---
     const handleDeleteChat = () => {
         // TODO: チャット削除処理を実装
-        alert(`Chat ${id} will be deleted.`);
+        alert(`Chat ${chatId} will be deleted.`);
     };
 
     const handleShowParticipants = () => {
@@ -38,10 +44,43 @@ export function ChatDetail() {
         alert('Showing participants...');
     };
 
-    const handleShowSchedule = () => {
-        // TODO: 予約日程取得ロジックを実装
-        alert('モックの予約日時: 2025年10月10日 15:00');
+    const handleCreateSchedule = () => {
+        setIsCreateModalOpen(true);
     };
+
+    const handleShowSchedule = () => {
+        setIsListModalOpen(true);
+    };
+
+    // ユーザーの役割に応じてメニュー項目を動的に生成
+    const menuItems: ChatActionMenuItemConfig[] = [
+        {
+            label: "参加者を表示",
+            icon: UsersIcon,
+            onClick: handleShowParticipants,
+        },
+    ];
+
+    if (currentUser?.role === 'coach') {
+        menuItems.push({
+            label: "予約を作成",
+            icon: CalendarDaysIcon,
+            onClick: handleCreateSchedule,
+        });
+    } else {
+        menuItems.push({
+            label: "予約を確認",
+            icon: CalendarDaysIcon,
+            onClick: handleShowSchedule,
+        });
+    }
+
+    menuItems.push({
+        label: "チャットを削除",
+        icon: TrashIcon,
+        onClick: handleDeleteChat,
+        isDestructive: true,
+    });
 
     useEffect(() => {
         if (sentInitialMessage.current) return;
@@ -113,11 +152,7 @@ export function ChatDetail() {
         <ChatLayout
             headerContent={
                 <div className="fixed top-4 right-4 z-30">
-                    <ChatActionMenu 
-                        onDelete={handleDeleteChat}
-                        onShowParticipants={handleShowParticipants}
-                        onShowSchedule={handleShowSchedule}
-                    />
+                    <ChatActionMenu items={menuItems} />
                 </div>
             }
             inputBar={
@@ -139,6 +174,18 @@ export function ChatDetail() {
                 ))}
                 <div ref={bottomRef} />
             </div>
+            {/* モーダルコンポーネントを配置 */}
+            <AppointmentFormModal
+                isOpen={isCreateModalOpen}
+                onClose={() => setIsCreateModalOpen(false)}
+                chatId={chatId ?? ''}
+                initialParticipantIds={data?.participants.map(p => p.id) || []}
+            />
+            <AppointmentListModal
+                isOpen={isListModalOpen}
+                onClose={() => setIsListModalOpen(false)}
+                chatId={chatId ?? ''}
+            />
         </ChatLayout>
     );
 }

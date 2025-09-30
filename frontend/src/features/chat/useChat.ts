@@ -8,8 +8,6 @@ import {
   sendMessage
 } from "./chatService";
 import type { ChatDetailResponse, ChatItemRequest, ChatSummaryResponse, ChatUpdateRequest} from "../../types";
-import { send } from "process";
-
 
 export function useChats() {
   return useQuery<ChatSummaryResponse[]>({

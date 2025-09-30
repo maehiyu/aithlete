@@ -1,14 +1,40 @@
 import { Menu, Transition } from "@headlessui/react";
-import { EllipsisVerticalIcon, UsersIcon, CalendarDaysIcon, TrashIcon } from "@heroicons/react/24/outline";
+import { EllipsisVerticalIcon} from "@heroicons/react/24/outline";
 import { Fragment } from "react";
+import React from "react";
 
-type Props = {
-    onDelete: () => void;
-    onShowParticipants: () => void;
-    onShowSchedule: () => void;
+// メニュー項目の型定義
+export type ChatActionMenuItemConfig = {
+    label: string;
+    icon: React.ElementType; // Heroiconsのコンポーネントを受け取るため
+    onClick: () => void;
+    isDestructive?: boolean; // 削除系アクション用
+};
+
+// 各メニュー項目をレンダリングするヘルパーコンポーネント
+function ChatActionMenuItem({ onClick, label, icon: Icon, isDestructive = false }: ChatActionMenuItemConfig) {
+    return (
+        <div className="px-1 py-1">
+            <Menu.Item>
+                {({ active }) => (
+                    <button
+                        onClick={onClick}
+                        className={`${active ? (isDestructive ? 'bg-red-500 text-white' : 'bg-gray-100') : (isDestructive ? 'text-red-600' : 'text-gray-900')} group flex w-full items-center rounded-md px-2 py-2 text-sm`}
+                    >
+                        <Icon className="mr-2 h-5 w-5" aria-hidden="true" />
+                        {label}
+                    </button>
+                )}
+            </Menu.Item>
+        </div>
+    );
 }
 
-export function ChatActionMenu({ onDelete, onShowParticipants, onShowSchedule }: Props) {
+type Props = {
+    items: ChatActionMenuItemConfig[];
+}
+
+export function ChatActionMenu({ items }: Props) {
     return (
         <Menu as="div" className="relative inline-block text-left">
             <div>
@@ -27,41 +53,9 @@ export function ChatActionMenu({ onDelete, onShowParticipants, onShowSchedule }:
             >
                 <Menu.Items className="absolute right-0 mt-2 w-56 origin-top-right divide-y divide-gray-100 rounded-md bg-white shadow-lg ring-1 ring-black/5 focus:outline-none">
                     <div className="px-1 py-1 ">
-                        <Menu.Item>
-                            {({ active }) => (
-                                <button
-                                    onClick={onShowParticipants}
-                                    className={`${active ? 'bg-gray-100' : ''} group flex w-full items-center rounded-md px-2 py-2 text-sm text-gray-900`}
-                                >
-                                    <UsersIcon className="mr-2 h-5 w-5" aria-hidden="true" />
-                                    参加者を表示
-                                </button>
-                            )}
-                        </Menu.Item>
-                        <Menu.Item>
-                            {({ active }) => (
-                                <button
-                                    onClick={onShowSchedule}
-                                    className={`${active ? 'bg-gray-100' : ''} group flex w-full items-center rounded-md px-2 py-2 text-sm text-gray-900`}
-                                >
-                                    <CalendarDaysIcon className="mr-2 h-5 w-5" aria-hidden="true" />
-                                    予約を確認
-                                </button>
-                            )}
-                        </Menu.Item>
-                    </div>
-                    <div className="px-1 py-1">
-                        <Menu.Item>
-                            {({ active }) => (
-                                <button
-                                    onClick={onDelete}
-                                    className={`${active ? 'bg-red-500 text-white' : 'text-gray-900'} group flex w-full items-center rounded-md px-2 py-2 text-sm`}
-                                >
-                                    <TrashIcon className="mr-2 h-5 w-5" aria-hidden="true" />
-                                    チャットを削除
-                                </button>
-                            )}
-                        </Menu.Item>
+                        {items.map((item, index) => (
+                            <ChatActionMenuItem key={index} {...item} />
+                        ))}
                     </div>
                 </Menu.Items>
             </Transition>

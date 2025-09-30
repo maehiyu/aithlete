@@ -5,6 +5,7 @@ import (
 	"api/application/service/command"
 	"api/application/service/query"
 	"net/http"
+	"log"
 
 	"github.com/gin-gonic/gin"
 )
@@ -26,20 +27,24 @@ func (h *AppointmentHandler) HandleCreateAppointment() gin.HandlerFunc {
 		ctx := c.Request.Context()
 		var req dto.AppointmentCreateRequest
 		if err := c.ShouldBindJSON(&req); err != nil {
+			log.Printf("Error binding JSON for AppointmentCreateRequest: %v", err) // エラーログ追加
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
 		}
+		log.Printf("Received AppointmentCreateRequest: %+v", req) // デバッグログ追加
 
-		// TODO: 本来は認証情報からUserIDを取得すべき
-		// userID, _ := c.Get("userId")
-		// req.UserID = userID.(string)
+		requesterID, exists := c.Get("userId")
+		if !exists {
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "userId not found in context"})
+			return
+		}
 
-		res, err := h.commandService.CreateAppointment(ctx, req)
+		id, err := h.commandService.CreateAppointment(ctx, req, requesterID.(string))
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 		}
-		c.JSON(http.StatusCreated, res)
+		c.JSON(http.StatusCreated, gin.H{"id": id})
 	}
 }
 

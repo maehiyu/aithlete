@@ -88,3 +88,36 @@ export type ChatDetailResponse = {
 	startedAt: string;
 	lastActiveAt: string;
 };
+
+export type AppointmentCreateRequest = {
+	chatId: string;
+	title: string;
+	description: string;
+	scheduledAt: string;
+	duration: number;
+	participantIds: string[];
+};
+
+export type AppointmentUpdateRequest = {
+	title?: string | null;
+	description?: string | null;
+	scheduledAt?: string;
+	duration?: number;
+	status?: "scheduled" | "completed" | "canceled";
+};
+
+export type AppointmentResponse = {
+	id: string;
+	chatId: string;
+	title: string;
+	description: string;
+	scheduledAt: string;
+	duration: number;
+	status: "scheduled" | "completed" | "canceled";
+	participants: AppointmentParticipantResponse[];
+}
+
+export type AppointmentParticipantResponse = {
+	participantId: string;
+	participationStatus: "needs-action" | "accepted" | "declined" | "tentative";
+};

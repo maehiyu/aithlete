@@ -165,13 +165,11 @@ func AppointmentCreateRequestToEntity(dto AppointmentCreateRequest, id string, n
 	return &entity.Appointment{
 		ID:          id,
 		ChatID:      dto.ChatID,
-		CoachID:     dto.CoachID,
-		UserID:      dto.UserID,
 		Title:       dto.Title,
 		Description: dto.Description,
 		ScheduledAt: dto.ScheduledAt,
 		Duration:    dto.Duration,
-		Status:      "scheduled", 
+		Status:      "scheduled",
 		CreatedAt:   now,
 		UpdatedAt:   now,
 	}
@@ -203,8 +201,6 @@ func AppointmentEntityToResponses(appointment *entity.Appointment) *AppointmentR
 	return &AppointmentResponse{
 		ID:          appointment.ID,
 		ChatID:      appointment.ChatID,
-		CoachID:     appointment.CoachID,
-		UserID:      appointment.UserID,
 		Title:       appointment.Title,
 		Description: appointment.Description,
 		ScheduledAt: appointment.ScheduledAt,

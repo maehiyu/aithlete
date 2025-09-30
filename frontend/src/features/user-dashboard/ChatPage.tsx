@@ -12,7 +12,8 @@ export function ChatPage() {
     const createAICoachMutation = useCreateAICoach();
     const createChatMutation = useCreateChat();
 
-    // ページ状態管理
+    console.log("Current User:", currentUser);
+
     const pageState = usePageState(currentUser, isUserLoading, userError);
 
     const handleCreateAIChat = async (message: string) => {

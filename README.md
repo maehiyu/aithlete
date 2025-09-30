@@ -21,6 +21,24 @@
 
 ```mermaid
 classDiagram
+	class Appointment {
+		+ID: string
+		+ChatID: string
+		+Title: string
+		+Description: string
+		+ScheduledAt: time.Time
+		+Duration: int
+		+Status: string
+		+CreatedAt: time.Time
+		+UpdatedAt: time.Time
+	}
+
+	class AppointmentParticipant {
+        +AppointmentID: string
+        +ParticipantID: string
+        +Status: string
+    }
+
 	class Chat {
 		+ID: string
 		+StartedAt: time.Time
@@ -109,6 +127,10 @@ classDiagram
 	Question "1" -- "0..*" Attachment
 	Answer "1" -- "0..*" Attachment
 	Attachment "1" -- "0..1" PoseData
+
+	Chat "1" -- "0..*" Appointment
+    Appointment "1" -- "1..*" AppointmentParticipant
+    Participant "1" -- "0..*" AppointmentParticipant
 ```
 
 ---

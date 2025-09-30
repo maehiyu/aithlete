@@ -53,9 +53,7 @@ CREATE TABLE IF NOT EXISTS posedata (
 
 CREATE TABLE IF NOT EXISTS appointments (
     id TEXT PRIMARY KEY,
-    chat_id TEXT NOT NULL REFERENCES chats(id) ON DELETE CASCADE,
-    coach_id TEXT NOT NULL REFERENCES participants(id) ON DELETE CASCADE,
-    user_id TEXT NOT NULL REFERENCES participants(id) ON DELETE CASCADE,
+    chat_id TEXT REFERENCES chats(id) ON DELETE SET NULL,
     title TEXT NOT NULL,
     description TEXT,
     scheduled_at TIMESTAMP WITH TIME ZONE NOT NULL,
@@ -63,6 +61,13 @@ CREATE TABLE IF NOT EXISTS appointments (
     status TEXT NOT NULL,
     created_at TIMESTAMP WITH TIME ZONE NOT NULL,
     updated_at TIMESTAMP WITH TIME ZONE NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS appointment_participants (
+    appointment_id TEXT NOT NULL REFERENCES appointments(id) ON DELETE CASCADE,
+    participant_id TEXT NOT NULL REFERENCES participants(id) ON DELETE CASCADE,
+    status TEXT NOT NULL,
+    PRIMARY KEY (appointment_id, participant_id)
 );
 
 -- テストデータ

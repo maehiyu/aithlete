@@ -7,8 +7,6 @@ import (
 type Appointment struct {
 	ID          string
 	ChatID      string
-	CoachID     string
-	UserID      string
 	Title       string
 	Description string
 	ScheduledAt time.Time
@@ -16,4 +14,10 @@ type Appointment struct {
 	Status      string
 	CreatedAt   time.Time
 	UpdatedAt   time.Time
+}
+
+type AppointmentParticipant struct {
+	AppointmentID       string
+	ParticipantID       string
+	Status string
 }

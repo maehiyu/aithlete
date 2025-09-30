@@ -83,10 +83,9 @@ export function usePageState<T>(
   return { type: 'empty' as const };
 }
 
-// チャット専用レイアウト（固定入力欄付き）
 export const ChatLayout: React.FC<{
   children: React.ReactNode;
-  headerContent?: React.ReactNode; // ヘッダーコンテンツ用のpropを追加
+  headerContent?: React.ReactNode;
   inputBar: React.ReactNode;
   className?: string;
 }> = ({ children, headerContent, inputBar, className = '' }) => (
