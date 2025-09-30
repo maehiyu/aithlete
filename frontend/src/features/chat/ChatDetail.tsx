@@ -7,6 +7,7 @@ import { ChatMessageItem } from '../../components/common/ChatMessageItem';
 import { useChatEvents } from './useChatEvents';
 import ChatInputBar from './components/ChatInputBar';
 import { ChatLayout, LoadingPage, ErrorPage, usePageState } from '../../components/layout/PageLayout';
+import { ChatActionMenu }  from './components/ChatActionMenu';
 
 export function ChatDetail() {
     const { id } = useParams<{ id: string }>();
@@ -25,6 +26,22 @@ export function ChatDetail() {
 
     // ページ状態管理
     const pageState = usePageState(data, isLoading, error);
+
+    // --- 仮のチャット操作ハンドラ ---
+    const handleDeleteChat = () => {
+        // TODO: チャット削除処理を実装
+        alert(`Chat ${id} will be deleted.`);
+    };
+
+    const handleShowParticipants = () => {
+        // TODO: 参加者表示処理を実装
+        alert('Showing participants...');
+    };
+
+    const handleShowSchedule = () => {
+        // TODO: 予約日程取得ロジックを実装
+        alert('モックの予約日時: 2025年10月10日 15:00');
+    };
 
     useEffect(() => {
         if (sentInitialMessage.current) return;
@@ -94,6 +111,15 @@ export function ChatDetail() {
 
     return (
         <ChatLayout
+            headerContent={
+                <div className="fixed top-4 right-4 z-30">
+                    <ChatActionMenu 
+                        onDelete={handleDeleteChat}
+                        onShowParticipants={handleShowParticipants}
+                        onShowSchedule={handleShowSchedule}
+                    />
+                </div>
+            }
             inputBar={
                 <ChatInputBar
                     value={message}

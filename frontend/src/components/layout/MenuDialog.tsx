@@ -1,7 +1,6 @@
 import { Fragment, useState } from "react";
 import { Dialog, DialogPanel, Transition, TransitionChild, Disclosure, DisclosureButton, DisclosurePanel } from "@headlessui/react";
 import { Bars3BottomLeftIcon, ChatBubbleLeftRightIcon, UsersIcon, XMarkIcon, ChevronRightIcon } from '@heroicons/react/24/outline';
-import IconLink from "../common/IconLink";
 import Avatar from "../common/Avatar";
 import SettingsSheet from "../../features/participant/components/SettingsSheet";
 import { useChats } from '../../features/chat/useChat';
@@ -42,7 +41,6 @@ export default function MenuDialog({ open, onClose, user }: MenuDialogProps) {
 						leaveTo="-translate-x-full"
 					>
 						<DialogPanel className="w-[90vw] max-w-xs sm:w-64 bg-white h-full shadow-xl p-6">
-							{/* ヘッダー部分 */}
 							<div className="flex items-center justify-between mb-6">
 								<button
 									onClick={() => setSettingsOpen(true)}
@@ -68,18 +66,8 @@ export default function MenuDialog({ open, onClose, user }: MenuDialogProps) {
 								</button>
 							</div>
 
-							{/* ナビゲーション */}
 							<nav>
 								<div className="space-y-2">
-									{/* コーチリンク */}
-									<a 
-										href="/coaches" 
-										className="flex items-center space-x-3 w-full p-3 text-left text-gray-700 hover:bg-gray-50 rounded-lg transition-colors"
-									>
-										<UsersIcon className="w-5 h-5" />
-										<span>コーチ一覧</span>
-									</a>
-
 									<Disclosure>
 										{({ open }) => (
 											<div>
@@ -169,6 +157,14 @@ export default function MenuDialog({ open, onClose, user }: MenuDialogProps) {
 											</div>
 										)}
 									</Disclosure>
+
+									<a 
+										href="/coaches" 
+										className="flex items-center space-x-3 w-full p-3 text-left text-gray-700 hover:bg-gray-50 rounded-lg transition-colors"
+									>
+										<UsersIcon className="w-5 h-5" />
+										<span>コーチ一覧</span>
+									</a>
 								</div>
 							</nav>
 						</DialogPanel>

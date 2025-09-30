@@ -86,12 +86,15 @@ export function usePageState<T>(
 // チャット専用レイアウト（固定入力欄付き）
 export const ChatLayout: React.FC<{
   children: React.ReactNode;
+  headerContent?: React.ReactNode; // ヘッダーコンテンツ用のpropを追加
   inputBar: React.ReactNode;
   className?: string;
-}> = ({ children, inputBar, className = '' }) => (
+}> = ({ children, headerContent, inputBar, className = '' }) => (
   <div className="min-h-screen bg-white flex flex-col">
     {/* チャット領域（スクロール可能） */}
-    <div className={`flex-1 overflow-y-auto px-4 sm:px-6 ${className}`}>
+    <div className={`flex-1 overflow-y-auto px-4 sm:px-6 relative ${className}`}>
+      {/* ヘッダーコンテンツを描画 */}
+      {headerContent}
       <div className="mx-auto max-w-2xl py-4">
         {children}
       </div>
